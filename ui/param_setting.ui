@@ -242,7 +242,7 @@
        <item>
         <widget class="QSpinBox" name="spinBox_4">
          <property name="maximum">
-          <number>1024</number>
+          <number>2014</number>
          </property>
         </widget>
        </item>
@@ -287,7 +287,7 @@
        <item>
         <widget class="QCheckBox" name="checkBox_2">
          <property name="text">
-          <string>Overwrite</string>
+          <string>Append to Input H5</string>
          </property>
         </widget>
        </item>

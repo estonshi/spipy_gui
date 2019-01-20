@@ -33,6 +33,8 @@ class TableMonitor(threading.Thread):
 		self.stopflag.set()
 
 
+##########
+
 def fmt_process_status(dataformat, hits = None, patterns = None):
 	h = "---"
 	p = "---"
@@ -41,44 +43,93 @@ def fmt_process_status(dataformat, hits = None, patterns = None):
 		h = hits
 		p = patterns
 		if patterns > 0:
-			hr = float(h)/float(p)
+			hr = float(h)/float(p)*100
 		else:
 			hr = 0
 		hr = "%.2f" % hr
 	
-	status = "Raw-Data  :  %s     Hits  :  %s     Patterns  :  %s     Hit-Rate  :  %s" %(dataformat, str(h), str(p), hr)
+	status = "Raw-Data  :  %s   ,  Hit-Rate  :  %s%%  ( %s / %s ) " %(dataformat, hr, str(h), str(p))
 	return status
 
 
+def fmt_job_dir(run_name, tag, remarks):
+	'''
+	define job_dir format, return 'run_name.tag.remarks'
+	[linked] : 
+		main_app.py  :  get_existing_runtags
+						get_latest_runtag
+						combine_tag_remarks
+						split_tag_remarks
+	'''
+	return "%s.%s.%s" % (run_name, tag, remarks)
+
+
+def fmt_runview_key(assgn, run_name, tag, remarks):
+	'''
+	return 'assgn.run_name.tag.remarks'
+	'''
+	return "%s.%s.%s.%s" % (assgn, run_name, tag, remarks)
+
+
+def fmt_remarks(remarks):
+	return re.sub('\"|\'|\s|\.|\$','',remarks)
+
+
 def extract_tag(assignments, tagfilename):
+	'''
+	configuration file format : 'assgn_tag.ini'
+	[linked] :
+		process.py : extract_tag
+		jobc.py    : extract_tag
+	'''
 	return tagfilename.split(assignments+"_")[-1].split('.ini')[0]
 
 
-
-def print2projectLog(rootdir, message):
-	nowtime = time.ctime()
-	st = "[INFO](%s) : %s\n" % (nowtime, message)
-	with open(os.path.join(rootdir, "project.log"), 'a+') as f:
-		f.write(st)
+def findnumber(string):
+	return re.findall(r"\d+\.?\d*", string)
 
 
-def rawdata_changelog(prev, now):
-	nowtime = time.ctime()
-	update = {}
-	update[nowtime] = [prev, now]
-	return update
+def split_runview_key(run_view_key, ret):
+	'''
+	asg : assignments
+	rn  : run_name
+	tag : tag
+	rm  : remarks
+	'''
+	tmp = run_view_key.split('.')
+	if ret == "asg":
+		return tmp[0]
+	elif ret == "rn":
+		return tmp[1]
+	elif ret == "tag":
+		return tmp[2]
+	elif ret == "rm":
+		return tmp[3]
+	else:
+		return tmp
 
+
+# ./scripts/scripts_utils.py has a copy
+def compile_h5loc(loc, run_name):
+	# %r means run name
+	tmp = re.sub(r"%r", run_name, loc)
+	# ...
+	# tmp = ...
+	return tmp
+
+
+
+##########
 
 def show_message(message):
 	msgBox = QtGui.QMessageBox()
 	msgBox.setTextFormat(QtCore.Qt.RichText)
-	msgBox.setIcon(QtGui.QMessageBox.Critical)
+	msgBox.setIcon(QtGui.QMessageBox.Information)
 	msgBox.setText(message)
 	msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
 	ret = msgBox.exec_()
 	if ret == QtGui.QMessageBox.Ok:
 		return 1
-
 
 
 def show_warning(message):
@@ -92,6 +143,9 @@ def show_warning(message):
 	# ret == 1 -> YES ; ret == 0 -> NO
 	return ret
 
+
+
+##########
 
 def check_PBS():
 	cmd = "command -v qsub qstat pestat"
@@ -173,23 +227,6 @@ def check_datadir(datadir, fmt_ind, all_fmts, subDir):
 		for i in range(len(all_fmts)):
 			count[i] = allfiles_ext.count(all_fmts[i])
 		most = count.index(max(count))
-		"""
-		if max(count) == 0:   # subDir correct
-			if len(alldirs) == 0:   # empty
-				return [0, 0]
-			else:
-				tmp = check_subDir(alldirs, fmt_ind, all_fmts)
-				if tmp == 0:        # empty
-					return [0, 0]
-				elif tmp == 1:      # format correct
-					return [1, 1]
-				else:               # format incorrect
-					return [tmp, 1]
-		elif most == fmt_ind:  # subDir incorrect, format correct
-			return [1, -1]
-		else:                  # subDir incorrect, format incorrect
-			return [all_fmts[most], -1]
-		"""
 		if len(alldirs) == 0:     # no dir
 			if max(count) == 0:   # empty
 				return [0, 0]
@@ -213,39 +250,140 @@ def check_datadir(datadir, fmt_ind, all_fmts, subDir):
 		
 
 
-def parse_multi_runs(path, dataformat):
+def parse_multi_runs_nosubdir(path, dataformat):
 	# xtc file name format :
-	# https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
+	# 	https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
+	# default format do not support multi-files per run,
+	# where no sub-dir exists.
 	all_files = [f for f in os.listdir(path) if f[0]!='.']
 	if dataformat.lower() == "xtc":
 		runs_multi = [findnumber(r)[1] for r in all_files if \
 							os.path.isfile(os.path.join(path, r)) \
 							and r.split('.')[-1].lower() == dataformat.lower()]
 	else:
-		runs_multi = [r for r in all_files if \
+		runs_multi = [os.path.splitext(r)[0] for r in all_files if \
 							os.path.isfile(os.path.join(path, r)) \
-							and r.split('.')[-1].lower() == dataformat.lower()]
+							and r.split('.')[-1].lower() == dataformat.lower() \
+							and '.' not in os.path.splitext(r)[0]]
 	runs = list(set(runs_multi))
 	counts = [runs_multi.count(run) for run in runs]
-	runs = [runs[i]+"#%d" % counts[i] for i in range(len(runs))]
+	runs = [runs[i]+"?_?^=^%d" % counts[i] for i in range(len(runs))]
 	return runs
 
 
-def parse_multi_run_streams(path, runname, dataformat):
+def parse_multi_run_streams(path, runname, dataformat, subdir=True):
 	# xtc file name format :
-	# https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
+	# 	https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
 	all_files = [f for f in os.listdir(path) if f[0]!='.']
 	if dataformat.lower() == "xtc":
-		run_num = findnumber(runname)[0]
+		run_num = findnumber(runname)[1]
 		streams = [os.path.join(path,s) for s in all_files if os.path.isfile(os.path.join(path, s)) \
 					and s.split('.')[-1].lower() == dataformat.lower() and findnumber(s)[1] == run_num]
 	else:
-		streams = [os.path.join(path,s) for s in all_files if os.path.isfile(os.path.join(path, s)) \
+		if subdir:
+			streams = [os.path.join(path,s) for s in all_files if os.path.isfile(os.path.join(path, s)) \
 					and s.split('.')[-1].lower() == dataformat.lower()]
+		else:
+			streams = [os.path.join(path,runname)]
 	return streams
 
 
+def submit_job(workdir, cmd, jss):
+	'''
+		# jss can be 'PBS', 'LSF' and None
+		# return subprocess.Popen object / string (job id of jss)
+		## this function is used in jobc.packSubmit
+		## Link:
+			submission.sh
+			app_namespace.ini
+	'''
+	os.chdir(workdir)
+
+	try:
+		if jss is None:
+			pobj = subprocess.Popen(cmd, shell=True, preexec_fn=os.setsid)
+			return pobj
+		elif jss.upper() == "PBS":
+			tmp = subprocess.check_output(cmd, shell=True)
+			pobj = tmp.strip('\n').strip()
+			return pobj
+		elif jss.upper() == "LSF":
+			tmp = subprocess.check_output(cmd, shell=True)
+			pobj = findnumber(tmp)[0]
+			return pobj
+		else:
+			return None
+	except:
+		return None
+
+
+def get_status(jss, pid):
+	'''
+		if jss is None, check whether it is running
+		if jss is "PBS" or "LSF", return status index in app_namespace.ini
+	'''
+	if jss is None:
+		return subprocess.check_output("ps -p %d" %pid, shell=True)
+	elif jss.upper() == "PBS":
+		tmp = subprocess.check_output("qstat %s" % pid, shell=True).split("\n")[2]
+		stat = re.split("\s+", tmp)[4]
+		if stat.upper() == "R":
+			return 1
+		elif stat.upper() == "Q" or stat.upper() == "H":
+			return 7
+		elif stat.upper() == "S":
+			return 4
+		else:
+			return None
+	elif jss.upper() == "LSF":
+		tmp = subprocess.check_output("bjobs -o stat: %s" %pid, shell=True).split("\n")[1]
+		stat = tmp.strip()
+		if stat.upper() == "RUN":
+			return 1
+		elif stat.upper() in ["PEND", "WAIT", "PROV"]:
+			return 7
+		elif stat.upper() in ["PSUSP", "USUSP", "SSUSP"]:
+			return 4
+		elif stat.upper() == "DONE":
+			return 2
+		else:
+			return None
+	else:
+		return None
+
+
+def kill_job(jss, job_obj):
+	'''
+		kill job 'pid' on different jss
+	'''
+	import signal
+	try:
+		if jss is None:
+			if type(job_obj) == subprocess.Popen:
+				this_pid = job_obj.pid
+			else:
+				this_pid = int(job_obj)
+			os.killpg(os.getpgid(this_pid),signal.SIGTERM)
+			return 1
+		elif jss.upper() == "LSF":
+			tmp = subprocess.check_output("bkill %s" % job_obj, shell=True)
+			return 1
+		elif jss.upper() == "PBS":
+			tmp = subprocess.check_output("qdel %s" % job_obj, shell=True)
+			return 1
+		else:
+			return 0
+	except:
+		return 0
+
+
+
+##########
+
 def write_config(file, dict, mode='w'):
+	'''
+		input dict = {'section':{'option':value, ...}, ...}
+	'''
 	if mode=='w' and os.path.exists(file):
 		os.remove(file)
 	config = ConfigParser()
@@ -270,8 +408,28 @@ def read_config(file, item=None):
 		return config
 
 
-def findnumber(string):
-	return re.findall(r"\d+\.?\d*", string)
+def rawdata_changelog(prev, now):
+	nowtime = time.ctime()
+	update = {}
+	update[nowtime] = [prev, now]
+	return update
+
+
+def print2projectLog(rootdir, message):
+	nowtime = time.ctime()
+	st = "[INFO](%s) : %s\n" % (nowtime, message)
+	with open(os.path.join(rootdir, "project.log"), 'a+') as f:
+		f.write(st)
+
+
+def readprojectLog(rootdir):
+	logfile = os.path.join(rootdir, "project.log")
+	if os.path.exists(logfile):
+		with open(logfile, 'r') as f:
+			lines = f.readlines()
+		return lines
+	else:
+		return None
 
 
 def logging_table(info_dict, changelog_dict, processdir):
@@ -295,9 +453,21 @@ def load_changelog(processdir):
 	return info
 
 
+def load_table(processdir):
+	path = os.path.join(processdir, 'table.info')
+	table = {}
+	if os.path.isfile(path):
+		try:
+			with open(path, 'r') as readfile:
+				table = json.load(readfile)
+		except:
+			pass
+	return table
+
+
 def read_ini():
 	conf = ConfigParser()
-	conf.read("app_namespace.ini")
+	conf.read(os.path.join(os.path.split(os.path.realpath(__file__))[0],"app_namespace.ini"))
 	namespace = {}
 	namespace['ini'] = conf.get('start', 'appini')
 	namespace['log'] = conf.get('start', 'applog')
@@ -310,7 +480,7 @@ def read_ini():
 	namespace['process_assignments'] = conf.get('process', 'assignments').split(',')
 	namespace['process_status'] = conf.get('process', 'status').split(',')
 	namespace['process_pat_per_job'] = conf.getint('process', 'pat_per_job')
-	namespace['max_jobs_per_file'] = conf.getint('process', 'max_jobs_per_file')
+	namespace['max_jobs_per_run'] = conf.getint('process', 'max_jobs_per_run')
 	process_colors = conf.get('process', 'colors').split(',')
 	namespace['process_colors'] = [[0,0,0]]*len(process_colors)
 	for i,cl in enumerate(process_colors):
@@ -325,8 +495,7 @@ def read_ini():
 	namespace['process_FA'] = conf.get('process', 'FA')
 	namespace['process_FAA'] = conf.get('process', 'FAA')
 	namespace['process_AP'] = conf.get('process', 'AP')
-	namespace['process_DEC'] = "decomp"
-	namespace['process_TSNE'] = "tsne"
+	namespace['process_CLF'] = "decomp"
 	namespace['process_MRG'] = "merge"
 	namespace['process_PHS'] = "phasing"
 	namespace['classify_SVD'] = conf.get('classify', 'SVD')
@@ -339,3 +508,21 @@ def read_ini():
 	namespace['merge_ICOSYM'] = conf.get('merge', 'ICOSYM')
 	return namespace
 
+
+def read_status(file):
+	values = {}
+	with open(file, "r") as fp:
+		for line in fp.readlines():
+			info, value = line.split(":")
+			values[info.strip()] = value.strip()
+	return values
+
+
+def get_scripts():
+	conf = ConfigParser()
+	conf.read(os.path.join(os.path.split(os.path.realpath(__file__))[0],"scripts/scripts.ini"))
+	section = conf.sections()[0]
+	scripts = {}
+	for op in conf.options(section):
+		scripts[op] = conf.get(section, op)
+	return scripts

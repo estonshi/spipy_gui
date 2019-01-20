@@ -11,7 +11,9 @@ from functools import partial
 
 import utils
 from param_setting_gui import Ui_Settings
+import chosebox
 
+hf_inh5 = "Hits/data"
 
 class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 
@@ -85,10 +87,11 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.checkBox_2.setText("Save hits")
 			self.ui.checkBox_2.setCheckState(QtCore.Qt.Checked)
 			self.ui.lineEdit.setText(self.mainwindow.datapath)
+			self.ui.lineEdit.setDisabled(True)
 			# set trigger
 			#self.connect(self.ui.pushButton_2, QtCore.SIGNAL(("clicked()")), partial(self.cxi_file, 2))
 			self.connect(self.ui.pushButton_3, QtCore.SIGNAL(("clicked()")), partial(self.npy_file, 3))
-			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), self.data_dir)
+			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), partial(self.data_dir, assignments))
 			self.ui.checkBox_2.stateChanged.connect(self.downsampling)
 			# set/read Process_Settings.param
 			if assignments in Process_Settings.param.keys():
@@ -115,8 +118,10 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.widget_8.setVisible(False)
 			self.ui.checkBox.setVisible(False)
 			self.ui.lineEdit.setText(os.path.join(self.mainwindow.dirname, self.module_name))
+			self.ui.lineEdit.setDisabled(True)
+			self.ui.lineEdit_4.setText(hf_inh5)
 			# set triiger
-			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), self.data_dir)
+			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), partial(self.data_dir, assignments))
 			self.connect(self.ui.pushButton_2, QtCore.SIGNAL(("clicked()")), partial(self.npy_file, 2))
 			self.connect(self.ui.pushButton_3, QtCore.SIGNAL(("clicked()")), partial(self.npy_file, 3))
 			# set/read Process_Settings.param
@@ -147,8 +152,10 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.widget_8.setVisible(False)
 			self.ui.checkBox.setVisible(False)
 			self.ui.lineEdit.setText(os.path.join(self.mainwindow.dirname, self.namespace['project_structure'][1]))
+			self.ui.lineEdit.setDisabled(True)
+			self.ui.lineEdit_4.setText(hf_inh5)
 			# set triiger
-			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), self.data_dir)
+			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), partial(self.data_dir, assignments))
 			self.connect(self.ui.pushButton_2, QtCore.SIGNAL(("clicked()")), partial(self.npy_file, 2))
 			# set/read Process_Settings.param
 			if assignments in Process_Settings.param.keys():
@@ -168,13 +175,17 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.widget_4.setVisible(False)
 			self.ui.widget_3.setVisible(False)
 			self.ui.widget_6.setVisible(False)
-			self.ui.widget_7.setVisible(False)
-			#self.ui.label_7.setText("nJobs (per data file)")
-			#self.ui.spinBox_4.setMinimum(1)
+			#self.ui.widget_7.setVisible(False)
+			self.ui.label_7.setText("ADU-per-Photon")
+			self.ui.spinBox_4.setMinimum(0)
+			self.ui.spinBox_4.setMaximum(4096)
+			self.ui.label_7.setToolTip("If this is set to a number (>1), then 'Photon percent' will be ignored.")
 			self.ui.label_8.setText("Photon percent")
-			self.ui.lineEdit.setText(os.path.join(self.mainwindow.dirname, self.module_name))
+			self.ui.lineEdit.setText(os.path.join(self.mainwindow.dirname, self.module_name, self.namespace["process_HF"]))
+			self.ui.lineEdit.setDisabled(True)
+			self.ui.lineEdit_4.setText(hf_inh5)
 			# set triiger
-			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), self.data_dir)
+			self.connect(self.ui.pushButton, QtCore.SIGNAL(("clicked()")), partial(self.data_dir, assignments))
 			self.connect(self.ui.pushButton_2, QtCore.SIGNAL(("clicked()")), partial(self.npy_file, 2))
 			# set/read Process_Settings.param
 			if assignments in Process_Settings.param.keys():
@@ -182,7 +193,7 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 				self.ui.lineEdit.setText( Process_Settings.param[assignments][str(self.ui.label.text())] )
 				self.ui.lineEdit_4.setText( Process_Settings.param[assignments][str(self.ui.label_5.text())] )
 				self.ui.lineEdit_2.setText( Process_Settings.param[assignments][str(self.ui.label_2.text())] )
-				#self.ui.spinBox_4.setValue( Process_Settings.param[assignments][str(self.ui.label_7.text())] )
+				self.ui.spinBox_4.setValue( Process_Settings.param[assignments][str(self.ui.label_7.text())] )
 				self.ui.doubleSpinBox.setValue( Process_Settings.param[assignments][str(self.ui.label_8.text())] )
 				self.ui.checkBox.setCheckState( Process_Settings.param[assignments][str(self.ui.checkBox.text())] )
 				self.ui.checkBox_2.setCheckState( Process_Settings.param[assignments][str(self.ui.checkBox_2.text())] )
@@ -207,14 +218,49 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			return
 
 
-	def data_dir(self):
+	def data_dir(self, me):
+		'''
 		datapath = str(QtGui.QFileDialog(self).getExistingDirectory())
 		if len(datapath) > 0:
 			self.ui.lineEdit.setText(datapath)
+		'''
+		datac = ['raw-dataset']
+		if me == self.namespace['process_HF']:
+			pass
+		elif me == self.namespace['process_FA'] or me == self.namespace['process_FAA']:
+			datac.append(self.namespace['process_HF'])
+			datac.append(self.namespace['process_AP'])
+		elif me == self.namespace['process_AP']:
+			datac.append(self.namespace['process_HF'])
+			datac.append(self.namespace['process_FA'])
+			datac.append(self.namespace['process_FAA'])
+		else:
+			pass
+		# label, choices, ret, title=None
+		ret = [None]
+		chosebox.show_chosebox("Data Source", datac, ret, "choose data source")
+		# set linedit
+		if ret[0] == 0 or ret[0] is None:
+			self.ui.lineEdit.setText(self.mainwindow.datapath)
+			hf_inh5 = "None"
+		else:
+			assignments = datac[ret[0]]
+			self.ui.lineEdit.setText(os.path.join(self.mainwindow.dirname, self.module_name, assignments))
+			if assignments == self.namespace['process_HF']:
+				hf_inh5 = "Hits/data"
+			elif assignments == self.namespace['process_AP']:
+				hf_inh5 = "PhotonCount/data"
+			elif assignments == self.namespace['process_FA'] or assignments == self.namespace['process_FAA']:
+				hf_inh5 = "Fixed/data"
+			else:
+				hf_inh5 = "None"
+		self.ui.lineEdit_4.setText(hf_inh5)
 
 
 	def cxi_file(self, i):
 		cxifile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select h5/cxi file to open", "", "DATA (*.h5 *.cxi)"))
+		if not os.path.exists(cxifile):
+			return
 		if i==2:
 			self.ui.lineEdit_2.setText(cxifile)
 		elif i==3:
@@ -223,6 +269,8 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 
 	def npy_file(self, i):
 		npyfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select npy file to open", "", "DATA (*.npy)"))
+		if not os.path.exists(npyfile):
+			return
 		if i==2:
 			self.ui.lineEdit_2.setText(npyfile)
 		elif i==3:
@@ -275,7 +323,7 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.lineEdit.setText( config.get( self.namespace['config_head'], str(self.ui.label.text()) ) )
 			self.ui.lineEdit_4.setText( config.get( self.namespace['config_head'], str(self.ui.label_5.text()) ) )
 			self.ui.lineEdit_2.setText( config.get( self.namespace['config_head'], str(self.ui.label_2.text()) ) )
-			#self.ui.spinBox_4.setValue( int( config.get( self.namespace['config_head'], str(self.ui.label_7.text()) ) ) )
+			self.ui.spinBox_4.setValue( int( config.get( self.namespace['config_head'], str(self.ui.label_7.text()) ) ) )
 			self.ui.doubleSpinBox.setValue( float( config.get( self.namespace['config_head'], str(self.ui.label_8.text()) ) ) )
 			self.ui.checkBox.setCheckState( int( config.get( self.namespace['config_head'], str(self.ui.checkBox.text()) ) ) )
 			self.ui.checkBox_2.setCheckState( int( config.get( self.namespace['config_head'], str(self.ui.checkBox_2.text()) ) ) )
@@ -288,6 +336,9 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			return
 		elif '.' in tagname:
 			utils.show_message("Please do not use '.' (dot) in tag name !")
+			return
+		elif '_' in tagname:
+			utils.show_message("Please do not use '_' in tag name !")
 			return
 
 		if self.assignments not in Process_Settings.param.keys():
@@ -319,7 +370,7 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 			Process_Settings.param[self.assignments][str(self.ui.label.text())] = str(self.ui.lineEdit.text())
 			Process_Settings.param[self.assignments][str(self.ui.label_5.text())] = str(self.ui.lineEdit_4.text())
 			Process_Settings.param[self.assignments][str(self.ui.label_2.text())] = str(self.ui.lineEdit_2.text())
-			#Process_Settings.param[self.assignments][str(self.ui.label_7.text())] = self.ui.spinBox_4.value()
+			Process_Settings.param[self.assignments][str(self.ui.label_7.text())] = self.ui.spinBox_4.value()
 			Process_Settings.param[self.assignments][str(self.ui.label_8.text())] = self.ui.doubleSpinBox.value()
 			Process_Settings.param[self.assignments][str(self.ui.checkBox.text())] = self.ui.checkBox.checkState()
 

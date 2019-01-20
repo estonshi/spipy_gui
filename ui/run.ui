@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>447</width>
+    <width>520</width>
     <height>168</height>
    </rect>
   </property>
@@ -22,6 +22,9 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="sizeConstraint">
     <enum>QLayout::SetDefaultConstraint</enum>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
    </property>
    <item>
     <widget class="QWidget" name="widget" native="true">
@@ -43,7 +46,7 @@
       </property>
       <item>
        <widget class="QWidget" name="widget_3" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
          <property name="topMargin">
           <number>6</number>
          </property>
@@ -53,19 +56,26 @@
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Configuration    </string>
+            <string>Configuration     </string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QComboBox" name="comboBox"/>
          </item>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
       <item>
        <widget class="QWidget" name="widget_2" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
          <property name="topMargin">
           <number>6</number>
          </property>
@@ -75,12 +85,22 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>Remarks           </string>
+            <string>Remarks            </string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLineEdit" name="lineEdit"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Submit to queue</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_3"/>
          </item>
         </layout>
        </widget>
@@ -161,7 +181,7 @@
       <item>
        <widget class="QPushButton" name="pushButton_3">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>

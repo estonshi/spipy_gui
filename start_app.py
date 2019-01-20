@@ -33,8 +33,10 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 		self.jss = None
 		self.format_index = None
 		self.subDir = False
+		self.job_control = None
 		# read namespace
 		self.namespace = utils.read_ini()
+		self.job_control = [self.namespace['process_pat_per_job'], self.namespace['max_jobs_per_run']]
 		# set jss ui
 		for jss in self.namespace['JSS_support']:
 			self.ui.comboBox.addItem(jss)
@@ -59,30 +61,37 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 		if os.path.isdir(dirname):
 			# if it is a existing project
 			if os.path.exists(os.path.join(dirname, self.namespace['ini'])):
-				config_name = self.namespace['project_ini'][0]
-				config_item = self.namespace['project_ini'][1].split(',')
-				config = utils.read_config(os.path.join(dirname, self.namespace['ini']))
-				# jss
-				jss = config.get(config_name, config_item[1])
-				if jss in self.namespace['JSS_support']:
-					self.ui.comboBox.setCurrentIndex(self.namespace['JSS_support'].index(jss))
-					self.jss = jss
-				else:
-					self.ui.comboBox.setCurrentIndex(0)
-					self.jss = None
-				# datapath
-				datapath = config.get(config_name, config_item[0])
-				self.ui.lineEdit_2.setText(datapath)
-				self.datadir = datapath
-				# format
-				format_index = config.getint(config_name, config_item[2])
-				self.ui.comboBox_2.setCurrentIndex(format_index)
-				# sub dir
-				subDir = config.getboolean(config_name, config_item[3])
-				if subDir == True:
-					self.ui.checkBox.setCheckState(2)
-				else:
-					self.ui.checkBox.setCheckState(0)
+				try:
+					config_name = self.namespace['project_ini'][0]
+					config_item = self.namespace['project_ini'][1].split(',')
+					config = utils.read_config(os.path.join(dirname, self.namespace['ini']))
+					# jss
+					jss = config.get(config_name, config_item[1])
+					if jss in self.namespace['JSS_support']:
+						self.ui.comboBox.setCurrentIndex(self.namespace['JSS_support'].index(jss))
+						self.jss = jss
+					else:
+						self.ui.comboBox.setCurrentIndex(0)
+						self.jss = None
+					# datapath
+					datapath = config.get(config_name, config_item[0])
+					self.ui.lineEdit_2.setText(datapath)
+					self.datadir = datapath
+					# format
+					format_index = config.getint(config_name, config_item[2])
+					self.ui.comboBox_2.setCurrentIndex(format_index)
+					# sub dir
+					subDir = config.getboolean(config_name, config_item[3])
+					if subDir == True:
+						self.ui.checkBox.setCheckState(2)
+					else:
+						self.ui.checkBox.setCheckState(0)
+					# job control
+					self.job_control[0] = int(config.get(config_name, config_item[4]))
+					self.job_control[1] = int(config.get(config_name, config_item[5]))
+				except:
+					utils.show_message("There seems to be some problems in your 'project.ini' at project directory.")
+					return
 			self.dirname = dirname
 			self.ui.lineEdit.setText(self.dirname)
 		else:
@@ -97,14 +106,17 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 			return False
 
 		# check & set jss
-		if str(self.ui.comboBox.currentText()).strip() == "NO":
+		if str(self.ui.comboBox.currentText()).strip()[:2] == "NO":
 			self.jss = None
-		elif str(self.ui.comboBox.currentText()).strip() == "PBS":
+		elif str(self.ui.comboBox.currentText()).strip()[:3] == "PBS":
 			# check if PBS is working
 			if not utils.check_PBS():
 				utils.show_message("NO PBS detected !")
 				return False
 			self.jss = "PBS"
+		else:
+			utils.show_message("I can not recognize the job submitting system")
+			return False
 
 		# check data format
 		self.format_index = self.ui.comboBox_2.currentIndex()
@@ -172,15 +184,19 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 		# if not os.path.exists(os.path.join(self.dirname, self.namespace['ini'])):
 		self.makedirs()
 		# copy darkcal to Process/config
-		shutil.copyfile('./darkcal.ini', \
-			os.path.join(os.path.join(self.dirname, self.namespace['project_structure'][0]), "config/darkcal.ini") )
+		project_darkcal_path = os.path.join(self.dirname, self.namespace['project_structure'][0], "config/darkcal_default.ini")
+		if not os.path.exists(project_darkcal_path):
+			shutil.copyfile(os.path.join(os.path.split(os.path.realpath(__file__))[0], "darkcal.ini"), project_darkcal_path )
+		subprocess.check_call( "ln -fs %s %s" % ( project_darkcal_path, \
+			os.path.join(self.dirname, self.namespace['project_structure'][0], "config/darkcal.ini") ), shell=True )
 
 		# write project.ini
 		config_name = self.namespace['project_ini'][0]
 		config_item = self.namespace['project_ini'][1].split(',')
 		utils.write_config(os.path.join(self.dirname, self.namespace['ini']),\
 				{config_name:{config_item[0]:self.datadir, config_item[1]:self.jss, \
-				config_item[2]:self.format_index, config_item[3]:self.subDir}}, 'w')
+				config_item[2]:self.format_index, config_item[3]:self.subDir, \
+				config_item[4]:self.job_control[0], config_item[5]:self.job_control[1]}}, 'w')
 
 		utils.print2projectLog(self.dirname, "Select data dir %s" % self.datadir)
 		utils.print2projectLog(self.dirname, "Choose work dir %s" % self.dirname)
@@ -206,6 +222,12 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 					path2 = os.path.join(path, m)
 					if not os.path.exists(path2):
 						os.mkdir(path2)
+		geom = os.path.join(self.dirname, self.namespace['project_structure'][5], "geom")
+		if not os.path.exists(geom):
+			os.mkdir(geom)
+		mask = os.path.join(self.dirname, self.namespace['project_structure'][5], "mask")
+		if not os.path.exists(mask):
+			os.mkdir(mask)
 
 
 if __name__ == "__main__":

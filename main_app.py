@@ -13,6 +13,8 @@ from functools import partial
 import utils
 import process
 import jobc
+import jobview
+import data_viewer.data_viewer as data_viewer
 
 
 class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
@@ -27,13 +29,15 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		# other attributes
 		self.dirname = None
 		self.datapath = None
-		self.jss = None
+		self.jss = None           # None, or PBS/LSF
 		self.datapathtype = True  # True: dir--runs_dir--datafile  False: dir--datafile
 		self.data_format = None  # see self.namespace['data_format']
+		self.num_running_jobs = 0
 		# process_data is table infomation, the keys are run number, and first column stores raw data path
 		# , other columns are consistent with tableWidget
 		self.columnCount = self.ui.tableWidget.columnCount()
-		self.process_data = {}
+		self.process_data = None
+		self.rawdata_changelog = None
 		self.JobCenter = None
 		# setup triggers
 		self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
@@ -41,7 +45,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		self.ui.comboBox.currentIndexChanged.connect(self.assignments_changed)
 		self.ui.comboBox_3.currentIndexChanged.connect(self.decomp_changed)
 		self.ui.pushButton.clicked.connect(self.view_job)
-		self.ui.pushButton_2.clicked.connect(self.view_log)
+		# self.ui.pushButton_2.clicked.connect(self.view_history)
 		self.ui.pushButton_3.clicked.connect(partial(process.parameters_setting, self))
 		self.ui.pushButton_6.clicked.connect(self.refresh_table)
 		self.ui.checkBox_3.stateChanged.connect(self.autorefresh)
@@ -55,7 +59,9 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		self.datapathtype = datapathtype
 		self.data_format = self.namespace['data_format'][format_index]
 		# setup job center
-		self.JobCenter = jobc.JobCenter(self.jss, self.dirname)
+		self.JobCenter = jobc.JobCenter(self.jss, self.dirname, self.data_format, self)
+		# load table
+		self.process_data = utils.load_table(os.path.join(self.dirname, self.namespace['project_structure'][0]))
 		# load table change log, if there exists
 		self.rawdata_changelog = utils.load_changelog(os.path.join(self.dirname, self.namespace['project_structure'][0]))
 		# write jss to UI
@@ -67,6 +73,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.comboBox.addItem(assm)
 		self.ui.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
 		self.ui.label_73.setText( utils.fmt_process_status(self.data_format) )
+		self.ui.pushButton_2.setVisible(False)
 		# setup classify
 		for decp in self.namespace['classify_decomp']:
 			self.ui.comboBox_3.addItem(decp)
@@ -88,6 +95,8 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 
 
 	def closeEvent(self, event):
+		#self.JobCenter.write_job_hub()
+		utils.print2projectLog(self.dirname, "Close spipy GUI.")
 		QtGui.qApp.quit()
 
 
@@ -97,27 +106,37 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 				utils.show_message("No PBS detected !")
 				self.ui.comboBox_2.setCurrentIndex(0)
 			else:
-				self.jss = self.ui.comboBox_2.currentText()
+				self.jss = str(self.ui.comboBox_2.currentText())
 		else:
 			pass
+		self.JobCenter.setjss(self.jss)
 
 
 	"""
 		Process Tab
 	"""
 
-	# run folder name format:
-	#	.../run.tag.remarks/...
+	#  -----------------------------------  #
+	#  tag remarks format processing start  #
+	#  run folder name format:
+	#		.../run.tag.remarks/...
+	#  ------------------------------------ #
 
 	def get_existing_runtags(self, assignments, run_name):
+		'''
+		return [['tag','remarks'], ...]
+		'''
 		module_name = self.namespace['project_structure'][0]
 		path = os.path.join(self.dirname, module_name, '%s/%s.*' % (assignments, run_name))
 		tags = glob.glob(path)
-		tags = [os.path.split(tmp)[-1].split(run_name+'.')[-1] for tmp in tags]
+		tags = [os.path.split(tmp)[-1].split('.')[1:] for tmp in tags]
 		return tags
 
 
 	def get_latest_runtag(self, assignments, run_name):
+		'''
+		return ['tag','remarks']
+		'''
 		module_name = self.namespace['project_structure'][0]
 		path = os.path.join(self.dirname, module_name, '%s/%s.*' % (assignments, run_name))
 		tags = glob.glob(path)
@@ -128,31 +147,54 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			if timestamp > time:
 				time = timestamp
 				latest = tag
-		return os.path.split(latest)[-1].split(run_name+'.')[-1]
+		if latest == "--":
+			return latest
+		else:
+			return os.path.split(latest)[-1].split('.')[1:]
+
+
+	def combine_tag_remarks(self, tag_remarks):
+		if type(tag_remarks) == str:
+			return tag_remarks
+		else:
+			return tag_remarks[0] + '.' + tag_remarks[1]
+
+
+	def split_tag_remarks(self, tag_remarks):
+		return tag_remarks.split('.')
+
+	#  ---------------------------------  #
+	#  tag remarks format processing end  #
+	#  ---------------------------------  #
 
 
 	def assignments_changed(self, index):
 		# change combobox in table
 		# refresh table ?
-		self.refresh_table()
+		# self.refresh_table()
+		pass
 
 
 	def table_menu(self, position):
 		"""
 		entrance to submit jobs
 		"""
-		# refresh job status in JC
-		self.JobCenter.update_status()
-
 		# selected cells
 		selected_runs = []
-		selected_tags = []
+		selected_tag_remarks = {}
+		selected_datafile = {}
 		for pos in self.ui.tableWidget.selectionModel().selection().indexes():
 			row = pos.row()
-			run_name = self.ui.tableWidget.item(row, 0).text()
-			tag_name = self.ui.tableWidget.item(row, 1).text()
-			selected_runs.append(str(run_name))
-			selected_tags.append(str(tag_name))
+			run_name = str(self.ui.tableWidget.item(row, 0).text())
+			if len(self.process_data[run_name][0]) == 0:
+				utils.show_message("Run %s does not contain any data. Skip." % run_name)
+				continue
+			tag_remarks_name = str(self.ui.tableWidget.item(row, 1).text())
+			selected_runs.append(run_name)
+			selected_tag_remarks[run_name] = self.split_tag_remarks(tag_remarks_name)
+			selected_datafile[run_name] = self.process_data[run_name][0]
+
+		# show menu
 		if len(selected_runs) > 0:
 			# get assignments
 			assignments = str(self.ui.comboBox.currentText())
@@ -160,22 +202,27 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			menu = QtGui.QMenu()
 			a1 = menu.addAction("Run %s" % assignments)
 			menu.addSeparator()
-			a2 = menu.addAction("Terminate all")
+			# a2 = menu.addAction("Terminate all")
 			menu_sub = menu.addMenu("Terminate")
 			b = []
 			if len(selected_runs) > 1:
-				for assgn in self.namespace['process_assignments']:
-					b.append(menu_sub.addAction(assgn))
+				for assign in self.namespace['process_assignments']:
+					b.append(menu_sub.addAction(assign))
+				if selected_tag_remarks[selected_runs[0]][0] != "--":
+					menu.addSeparator()
+					a4 = menu.addAction("Open %s results in data viewer" % assignments)
 			elif len(selected_runs) == 1:
-				if self.JobCenter.run_view.has_key(selected_runs[0]): 
-					for jid in self.JobCenter.run_view[selected_runs[0]]:
-						assignments = self.JobCenter.jobs[jid].assignments
-						b.append( menu_sub.addAction(str(jid) + " : %s" % assignments) )
+				# TODO run_view data structure changed
+				run_tag_remarks = self.get_existing_runtags(assignments, selected_runs[0])
+				for tr in run_tag_remarks:
+					tr_status = self.JobCenter.get_run_status(selected_runs[0], self.namespace['project_structure'][0], assignments, tr[0], tr[1])
+					if tr_status == self.JobCenter.RUN:
+						b.append( menu_sub.addAction("%s.%s.%s.%s" % (assignments, selected_runs[0], tr[0], tr[1])) )
 				menu.addSeparator()
-				if selected_tags[0] == "darkcal":
+				if selected_tag_remarks[selected_runs[0]][0] == "darkcal":
 					a4 = menu.addAction("Set as current darkcal")
-				elif selected_tags[0] != "--":
-					a4 = menu.addAction("View %s" % assignments)
+				elif selected_tag_remarks[selected_runs[0]][0] != "--":
+					a4 = menu.addAction("Open %s results in data viewer" % assignments)
 				else:
 					a4 = 0
 			else:
@@ -185,43 +232,114 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			action = menu.exec_(self.ui.tableWidget.mapToGlobal(position))
 
 			# parse selection
-			# TODO : submit job to job center
 			job_type  = self.namespace['project_structure'][0] + "/" + assignments
 
 			if action == a1:
 				utils.print2projectLog(self.dirname, "Choose %s on %s" % (assignments, str(selected_runs)))
-				self.JobCenter.TableRun_showoff(job_type, selected_runs)
-			elif action == a2:
-				print("Terminate all jobs of %s" % str(selected_runs))
+				self.JobCenter.TableRun_showoff(job_type, selected_runs, selected_datafile, selected_tag_remarks)
+			#elif action == a2:
+				# TODO
+			#	print("Terminate all jobs of %s" % str(selected_runs))
 			elif len(selected_runs) == 1 and action == a4:
-				if selected_tags[0] == "darkcal":
-					print("Set %s as current darkcal" % selected_runs[0])
+				if selected_tag_remarks[selected_runs[0]][0] == "darkcal":
+					# re-link current-darkcal.h5
+					tmp_darkfile = utils.fmt_job_dir(selected_runs[0], \
+						selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
+					tmp_darkfile = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], tmp_darkfile)
+					try:
+						tmp_darkfile = glob.glob(os.path.join(tmp_darkfile, "*darkcal.h5"))[0]
+					except:
+						utils.show_message("I cannot find ?.darkcal.h5 in this run. Fail to set current darkcal.")
+						return
+					tmp_curr_darklink = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], self.namespace['darkcal'])
+					prev_dark_run = None
+					if os.path.exists(tmp_curr_darklink):
+						prev_dark_run = subprocess.check_output("ls -l %s | awk -F'->' '{print $2}' | tr -d ' '" % tmp_curr_darklink, shell=True)
+						prev_dark_run = os.path.split(prev_dark_run.strip("\n"))[-1].split('.')[0]
+					subprocess.check_call("ln -fs %s %s" % (tmp_darkfile, tmp_curr_darklink), shell=True)
+					# refresh table info
+					if prev_dark_run is not None:
+						self.process_data[prev_dark_run][6] = "--"
+					self.process_data[selected_runs[0]][6] = "Current-Darkcal"
+					utils.print2projectLog(self.dirname, "Set %s as current darkcal" % selected_runs[0])
+					# draw table
+					self.draw_table()
 				else:
-					print("View %s results of %s" % (assignments, selected_runs[0]))
+					# open data viewer and add files
+					tmp = utils.fmt_job_dir(selected_runs[0], \
+						selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
+					tmp = os.path.join(self.dirname, self.namespace['project_structure'][0], assignments, tmp, '*.h5')
+					tmp = glob.glob(tmp)
+					if not data_viewer.is_shown():
+						data_viewer.show_data_viewer(self)
+					data_viewer.add_files(tmp)
+					utils.print2projectLog(self.dirname, "Add %s results of %s to data viewer." % (assignments, selected_runs[0]))
 			elif len(selected_runs) == 1 and action in b:
-				jid = int( str(action.text()).split(':')[0] )
-				print("Terminate job %d of %s" % (jid, str(selected_runs)))
+				tmp = str(action.text()).split('.')
+				jid = self.JobCenter.get_jid(tmp[0], tmp[1], tmp[2], tmp[3])
+				re = utils.show_warning("Terminate job %d of %s ?" % (jid, str(selected_runs)))
+				if re == 1:
+					tmp = self.JobCenter.kill_job(jid)
+					if tmp[0] == 1:
+						utils.print2projectLog(self.dirname, "Terminate job %d of %s" % (jid, str(selected_runs)))
+						utils.show_message("Job %s is successfully terminated" % str(action.text()))
+					else:
+						utils.print2projectLog(self.dirname, "Fail to terminate job %d of %s" % (jid, str(selected_runs)))
+						utils.show_message("**FAIL** to terminate job !" % str(action.text()))
+					# refresh
+					self.update_table_runs()
+					self.draw_table()
 			elif len(selected_runs) > 1 and action in b:
-				assgn = action.text()
-				print("Terminate %s of %s" % (assgn, str(selected_runs)))
+				assign = str(action.text())
+				all_jid = []
+				for run_name in selected_runs:
+					tag_remarks = self.get_existing_runtags(assign, run_name)
+					for tr in tag_remarks:
+						tr_status = self.JobCenter.get_run_status(run_name, self.namespace['project_structure'][0], assign, tr[0], tr[1])
+						if tr_status == self.JobCenter.RUN:
+							tmp_jid = self.JobCenter.run_view[utils.fmt_runview_key(assign, run_name, tr[0], tr[1])]
+							all_jid.append(tmp_jid)
+				re = utils.show_warning("Terminate all these %d jobs ?" % len(all_jid))
+				if re == 1:
+					killed = 0
+					for tmp_jid in all_jid:
+						killed += self.JobCenter.kill_job(jid)
+					utils.print2projectLog("Terminate %d %s jobs of %s" % (killed, assign, str(selected_runs)))
+					utils.show_message("Successfully terminate %d jobs" % killed)
+					# refresh
+					self.update_table_runs()
+					self.draw_table()
+			elif len(selected_runs) > 1 and action == a4:
+				if not data_viewer.is_shown():
+					data_viewer.show_data_viewer(self)
+				for selected_run in selected_runs:
+					tmp = utils.fmt_job_dir(selected_run, \
+						selected_tag_remarks[selected_run][0], selected_tag_remarks[selected_run][1])
+					tmp = os.path.join(self.dirname, self.namespace['project_structure'][0], assignments, tmp, '*.h5')
+					tmp = glob.glob(tmp)
+					data_viewer.add_files(tmp)
+				utils.print2projectLog(self.dirname, "Add %s results of %s to data viewer." % (assignments, str(selected_runs)))
 			else:
 				pass
 		else:
 			menu = QtGui.QMenu()
 			if self.ui.tableWidget.horizontalHeader().resizeMode(0) == QtGui.QHeaderView.Stretch:
-				a1 = menu.addAction("Unfill table window")
-				action = menu.exec_(self.ui.tableWidget.mapToGlobal(position))
-				if action == a1:
+				a1 = menu.addAction("Unfill table window")	
+			else:
+				a1 = menu.addAction("Fill table window")
+			menu.addSeparator()
+			a2 = menu.addAction("Set 'force overwrite' to %s" % str(not self.JobCenter.force_overwrite))
+
+			action = menu.exec_(self.ui.tableWidget.mapToGlobal(position))
+			if action == a1:
+				if self.ui.tableWidget.horizontalHeader().resizeMode(0) == QtGui.QHeaderView.Stretch:
 					self.ui.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
 				else:
-					pass
-			elif self.ui.tableWidget.horizontalHeader().resizeMode(0) == QtGui.QHeaderView.Interactive:
-				a1 = menu.addAction("Fill table window")
-				action = menu.exec_(self.ui.tableWidget.mapToGlobal(position))
-				if action == a1:
 					self.ui.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-				else:
-					pass
+			elif action == a2:
+				self.JobCenter.reverseForceOverwrite()
+			else:
+				pass
 
 
 	def update_table_runs(self):
@@ -231,9 +349,9 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 
 		# subdir ?
 		if not self.datapathtype:
-			all_in_dir = utils.parse_multi_runs(self.datapath, self.data_format)
+			all_in_dir = utils.parse_multi_runs_nosubdir(self.datapath, self.data_format)
 		else:
-			all_in_dir = [f for f in os.listdir(self.datapath) if f[0]!="." and f[0]!="$" \
+			all_in_dir = [f for f in os.listdir(self.datapath) if "." not in f and f[0]!="$" \
 									and os.path.isdir(os.path.join(self.datapath, f))]
 
 		prev_runs = self.process_data.keys()
@@ -242,10 +360,11 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		run_streams_num = "0"
 
 		# go through alll files/dirs
+		# detect raw data status
 		for d in all_in_dir:
 			# parse run name
 			if not self.datapathtype:
-				tmp = utils.findnumber(d)
+				tmp = d.split("?_?^=^")  # this magic code, defined in utils.parse_multi_runs_nosubdir
 				run_name = tmp[0]
 				run_streams_num = tmp[1]
 			else:
@@ -257,7 +376,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 				self.rawdata_changelog[run_name] = {}
 				# update process_data
 				if not self.datapathtype:
-					self.process_data[run_name][0] = utils.parse_multi_run_streams(self.datapath, run_name, self.data_format)
+					self.process_data[run_name][0] = utils.parse_multi_run_streams(self.datapath, run_name, self.data_format, False)
 					self.process_data[run_name][2] = self.namespace['process_status'][0] + " (%s)" % run_streams_num
 				else:
 					subpath = os.path.join(self.datapath, d)
@@ -272,7 +391,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			else:
 				prevdatafile = self.process_data[run_name][0]
 				if not self.datapathtype:
-					datafile = utils.parse_multi_run_streams(self.datapath, run_name, self.data_format)
+					datafile = utils.parse_multi_run_streams(self.datapath, run_name, self.data_format, False)
 					run_streams_num = str(len(datafile))
 					if len(datafile) == 0:                                            # deleted
 						tmp = self.process_data.pop(run_name)
@@ -302,23 +421,34 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 
 				prev_runs_checked[prev_runs.index(run_name)] = 1
 
-		# update status of job center
-		self.JobCenter.update_status()
-
 		for i,c in enumerate(prev_runs_checked):
 			if c == 0 :
 				run_name = prev_runs[i]
 				tmp = self.process_data.pop(run_name)
 				self.rawdata_changelog[run_name].update(utils.rawdata_changelog(tmp[0], "This run is Deleted"))
-			else:
-				run_name = prev_runs[i]
-				assignments = self.ui.comboBox.currentText()
-				latest_tag = self.get_latest_runtag(str(assignments), run_name)
-				self.process_data[run_name][1] = latest_tag
-				# job status
-				job_status = self.JobCenter.get_run_status(run_name, assignments, latest_tag)
-				if job_status is None:
+
+		# go through all job dir
+		# detect job status
+		# self.process_data[run_name][1] shows only hit-finding
+		prev_runs = self.process_data.keys()
+		hf_module = self.namespace['project_structure'][0]
+		self.num_running_jobs = 0
+		for i,c in enumerate(prev_runs):
+			run_name = prev_runs[i]
+			# get jobs status
+			for aindex in range(self.ui.comboBox.count()):
+				assignments = str(self.ui.comboBox.itemText(aindex))
+				latest_tag_remarks = self.get_latest_runtag(assignments, run_name)
+				# latest_tag_remarks is ['tag','remarks']
+				if type(latest_tag_remarks) != list or len(latest_tag_remarks) < 2:
 					continue
+				job_status = self.JobCenter.get_run_status(run_name, hf_module, assignments, latest_tag_remarks[0], latest_tag_remarks[1])
+				if job_status is None:
+					job_status = "--"
+				elif job_status == self.JobCenter.RUN:
+					self.num_running_jobs += 1
+				else:
+					pass
 				if assignments == self.namespace['process_HF']:
 					self.process_data[run_name][3] = job_status
 				elif assignments == self.namespace['process_FA']:
@@ -329,13 +459,40 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 					self.process_data[run_name][5] = job_status
 				else:
 					pass
-
+			# get hit-finding tag
+			assignments = self.namespace['process_HF']
+			latest_tag_remarks = self.get_latest_runtag(str(assignments), run_name)
+			self.process_data[run_name][1] = self.combine_tag_remarks(latest_tag_remarks)
+			# get hit rate
+			# output status format : see scripts/HitFinder.py
+			if type(latest_tag_remarks) != list or len(latest_tag_remarks) < 2:
+				self.process_data[run_name][6] = '--'
+				continue
+			elif latest_tag_remarks[0].lower() == "darkcal":
+				if self.process_data[run_name][6] != "Current-Darkcal":
+					self.process_data[run_name][6] = '--'
+				continue
+			hf_status = os.path.join(self.dirname, hf_module, '%s/%s.%s.%s/status' % \
+				(assignments, run_name, latest_tag_remarks[0], latest_tag_remarks[1]))
+			if os.path.exists(os.path.join(hf_status, 'summary.txt')):
+				summary = utils.read_status(os.path.join(hf_status, 'summary.txt'))
+				thishits = int(summary['hits'])
+				thisprocessed = int(summary['processed'])
+				self.process_data[run_name][6] = "%.2f%% (%d/%d)" % (100*float(thishits)/(thisprocessed+1e-6), thishits, thisprocessed)
+			else:
+				status_files = glob.glob(os.path.join(hf_status, 'status*'))
+				thishits = 0
+				thisprocessed = 0
+				for status_file in status_files:
+					summary = utils.read_status(status_file)
+					thishits += int(summary['hits'])
+					thisprocessed += int(summary['processed'])
+				self.process_data[run_name][6] = "%.2f%% (%d/%d)" % (100*float(thishits)/(thisprocessed+1e-6), thishits, thisprocessed)
 
 
 	def draw_table(self):
 		runs = self.process_data.keys()
 		runs.sort()
-		assignments = self.ui.comboBox.currentText()
 		hits = 0
 		patterns = 0
 		for i,r in enumerate(runs):
@@ -351,7 +508,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			for j,info in enumerate(infomation[1:self.columnCount]):
 				j = j+1
 				newitem = QtGui.QTableWidgetItem(info)
-				if j == 2:
+				if j in [2,3,4,5] and info != "--":
 					cindex = self.namespace['process_status'].index(info.split(" ")[0])
 					color = self.namespace['process_colors'][cindex]
 					newitem.setBackgroundColor(QtGui.QColor(color[0], color[1], color[2], 127))
@@ -363,7 +520,10 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 				hits += int(hitinfo[1])
 				patterns += int(hitinfo[2])
 		self.ui.label_73.setText( utils.fmt_process_status(self.data_format, hits, patterns) )
-
+		self.ui.lcdNumber.display(self.num_running_jobs)
+		# logging table
+		utils.logging_table(self.process_data, self.rawdata_changelog, \
+				os.path.join(self.dirname, self.namespace['project_structure'][0]))
 
 
 	def refresh_table(self):
@@ -372,8 +532,6 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		# refresh
 		self.update_table_runs()
 		self.draw_table()
-		utils.logging_table(self.process_data, self.rawdata_changelog, \
-				os.path.join(self.dirname, self.namespace['project_structure'][0]))
 		utils.print2projectLog(self.dirname, "Table updated.")
 		# unlock button
 		self.ui.pushButton_6.setEnabled(True)
@@ -406,11 +564,20 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 
 
 	def view_job(self):
-		print "view job"
+		jobview.show_jobView(self)
+		utils.print2projectLog(self.dirname, "Open job viewer.")
 
 
-	def view_log(self):
-		print "view log"
+	def view_history(self):
+		pass
+
+
+
+	'''
+		Merge Tab
+	'''
+
+	
 
 
 

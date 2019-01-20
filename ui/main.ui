@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1153</width>
+    <width>1240</width>
     <height>814</height>
    </rect>
   </property>
@@ -228,7 +228,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1025</width>
+                       <width>1112</width>
                        <height>554</height>
                       </rect>
                      </property>
@@ -1680,6 +1680,73 @@ color: rgb(255, 255, 255);</string>
                    </widget>
                   </item>
                   <item>
+                   <widget class="QWidget" name="widget_82" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_68">
+                     <item>
+                      <widget class="QLabel" name="label_76">
+                       <property name="text">
+                        <string>Load Parameters</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QComboBox" name="comboBox_17">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_22">
+                       <property name="text">
+                        <string>Load</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_22">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_77">
+                       <property name="text">
+                        <string>Configuration Tag</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_18">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_23">
+                       <property name="text">
+                        <string>save as config</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QGroupBox" name="groupBox_5">
                     <property name="font">
                      <font>
@@ -1687,7 +1754,7 @@ color: rgb(255, 255, 255);</string>
                      </font>
                     </property>
                     <property name="title">
-                     <string>Runtime Parameters</string>
+                     <string>Runtime</string>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_19">
                      <property name="leftMargin">
@@ -2479,6 +2546,66 @@ color: rgb(255, 255, 255);</string>
                 </widget>
                </item>
                <item>
+                <widget class="QWidget" name="widget_83" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_69">
+                  <item>
+                   <widget class="QLabel" name="label_78">
+                    <property name="text">
+                     <string>Load Parameters</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBox_18"/>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton_24">
+                    <property name="text">
+                     <string>Load</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_23">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_79">
+                    <property name="text">
+                     <string>Configuration Tag</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_19">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton_25">
+                    <property name="text">
+                     <string>save as config</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
                 <widget class="QGroupBox" name="groupBox_8">
                  <property name="font">
                   <font>
@@ -2486,7 +2613,7 @@ color: rgb(255, 255, 255);</string>
                   </font>
                  </property>
                  <property name="title">
-                  <string>Runtime Parameters</string>
+                  <string>Runtime</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_23">
                   <property name="leftMargin">
@@ -2583,7 +2710,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QLabel" name="label_54">
                           <property name="text">
-                           <string>Processes (only valid for 3D retrieval)</string>
+                           <string>Processes </string>
                           </property>
                          </widget>
                         </item>
@@ -2743,7 +2870,7 @@ color: rgb(255, 255, 255);</string>
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If empty, default work path will be used&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>Output Directory</string>
+                     <string>Predefined Euler angles</string>
                     </property>
                    </widget>
                   </item>
@@ -3009,13 +3136,6 @@ color: rgb(255, 255, 255);</string>
                 </widget>
                </item>
                <item>
-                <widget class="Line" name="line_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
                 <widget class="QGroupBox" name="groupBox_11">
                  <property name="enabled">
                   <bool>true</bool>
@@ -3026,7 +3146,7 @@ color: rgb(255, 255, 255);</string>
                   </font>
                  </property>
                  <property name="title">
-                  <string>Parameters Only for &quot;atom scattering&quot;</string>
+                  <string>Atom Scattering</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_28">
                   <property name="leftMargin">
@@ -3037,63 +3157,27 @@ color: rgb(255, 255, 255);</string>
                   </property>
                   <item>
                    <widget class="QWidget" name="widget_74" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_65" stretch="0,0,0,0,0,1,0,0,0,0,1,0,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_65" stretch="0,0,0,0,1,0,0">
                      <item>
                       <widget class="QLabel" name="label_65">
                        <property name="text">
-                        <string>Euler angle range :</string>
+                        <string>Euler angles</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLabel" name="label_66">
-                       <property name="text">
-                        <string>From</string>
-                       </property>
+                      <widget class="QComboBox" name="comboBox_19">
+                       <item>
+                        <property name="text">
+                         <string>random</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>predefined</string>
+                        </property>
+                       </item>
                       </widget>
-                     </item>
-                     <item>
-                      <widget class="QDoubleSpinBox" name="doubleSpinBox_14">
-                       <property name="maximum">
-                        <double>6.280000000000000</double>
-                       </property>
-                       <property name="singleStep">
-                        <double>0.100000000000000</double>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_67">
-                       <property name="text">
-                        <string>to</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QDoubleSpinBox" name="doubleSpinBox_15">
-                       <property name="maximum">
-                        <double>6.280000000000000</double>
-                       </property>
-                       <property name="singleStep">
-                        <double>0.100000000000000</double>
-                       </property>
-                       <property name="value">
-                        <double>6.280000000000000</double>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <spacer name="horizontalSpacer_17">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>73</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
                      </item>
                      <item>
                       <widget class="QLabel" name="label_68">
@@ -3105,62 +3189,21 @@ color: rgb(255, 255, 255);</string>
                      <item>
                       <widget class="QComboBox" name="comboBox_14">
                        <property name="currentIndex">
-                        <number>2</number>
+                        <number>0</number>
                        </property>
                        <item>
                         <property name="text">
-                         <string>x</string>
+                         <string>zxz</string>
                         </property>
                        </item>
                        <item>
                         <property name="text">
-                         <string>y</string>
+                         <string>zyz</string>
                         </property>
                        </item>
                        <item>
                         <property name="text">
-                         <string>z</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="comboBox_15">
-                       <item>
-                        <property name="text">
-                         <string>x</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>y</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>z</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="comboBox_16">
-                       <property name="currentIndex">
-                        <number>2</number>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>x</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>y</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>z</string>
+                         <string>xyz</string>
                         </property>
                        </item>
                       </widget>
@@ -3202,6 +3245,73 @@ color: rgb(255, 255, 255);</string>
                 </widget>
                </item>
                <item>
+                <widget class="QWidget" name="widget_84" native="true">
+                 <layout class="QHBoxLayout" name="horizontalLayout_70">
+                  <item>
+                   <widget class="QLabel" name="label_66">
+                    <property name="text">
+                     <string>Load Parameters</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="comboBox_15"/>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton_26">
+                    <property name="text">
+                     <string>Load</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_17">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_67">
+                    <property name="text">
+                     <string>Configuration Tag</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_20">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="pushButton_27">
+                    <property name="text">
+                     <string>save as config</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QGroupBox" name="groupBox_12">
                  <property name="font">
                   <font>
@@ -3209,7 +3319,7 @@ color: rgb(255, 255, 255);</string>
                   </font>
                  </property>
                  <property name="title">
-                  <string>Runtime Parameters</string>
+                  <string>Runtime</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_29">
                   <property name="leftMargin">
@@ -3432,7 +3542,7 @@ color: rgb(255, 255, 255);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1153</width>
+     <width>1240</width>
      <height>22</height>
     </rect>
    </property>
