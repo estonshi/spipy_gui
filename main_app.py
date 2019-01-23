@@ -50,6 +50,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		self.ui.pushButton_6.clicked.connect(self.refresh_table)
 		self.ui.checkBox_3.stateChanged.connect(self.autorefresh)
 		self.ui.tableWidget.customContextMenuRequested.connect(self.table_menu)
+		self.ui.tableWidget.cellDoubleClicked.connect(self.cell_dclicked)
 
 
 	def setup(self, workpath, datapath, jss, datapathtype, format_index):
@@ -172,6 +173,14 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		# change combobox in table
 		# refresh table ?
 		# self.refresh_table()
+		pass
+
+
+	def cell_dclicked(self, row, column):
+		'''table cell double clicked
+			run tag changing
+		'''
+		# TODO
 		pass
 
 

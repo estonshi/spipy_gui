@@ -58,14 +58,15 @@ if __name__ == '__main__':
 	run_name   = runtime['run_name']
 
 	if mpi_rank == 0:
-		print("Submit %d jobs for adu2photon of %s" % (mpi_size, run_name))
+		print("- Submit %d jobs for adu2photon of %s." % (mpi_size, run_name))
+		print("- Read config file %s." % os.path.split(config_ini)[-1])
 
 	inh5          = su.compile_h5loc(config.get(sec, 'data-path in cxi/h5'), run_name)
 	force_poisson = config.getint(sec, 'force poisson')
 	appending     = config.getint(sec, 'append to input h5')
 	aduperphoton  = float(config.get(sec, 'adu-per-photon'))
 	photon_percent= config.getfloat(sec, 'photon percent')
-	mask_file      = config.get(sec, 'mask (.npy)')
+	mask_file     = config.get(sec, 'mask (.npy)')
 
 	if os.path.exists(mask_file):
 		mask = np.load(mask_file)
@@ -74,13 +75,13 @@ if __name__ == '__main__':
 
 	if mpi_rank == 0:
 		if mask is None:
-			print("Mask file is not given (correctly)")
+			print("- Mask file is not given (correctly).")
 		else:
-			print("Mask file %s is loaded" % mask_file)
+			print("- Mask file %s is loaded." % mask_file)
 		if aduperphoton > 1:
-			print("Adu-per-photon is set as %f, ignore photon percent." % aduperphoton)
+			print("- Adu-per-photon is set as %f, ignore photon percent." % aduperphoton)
 		else:
-			print("Photon percent is set as %f" % photon_percent)
+			print("- Photon percent is set as %f." % photon_percent)
 
 	# status
 	status_file = os.path.join(savepath, "status/status_%d.txt" % mpi_rank)
@@ -90,6 +91,9 @@ if __name__ == '__main__':
 	num_processed = 0
 
 	for df in data_files:
+
+		if mpi_rank == 0:
+			print("- Processing %s ..." % df)
 
 		# load data
 		fp = h5py.File(df, 'r')
@@ -122,8 +126,9 @@ if __name__ == '__main__':
 					adu = np.where(np.abs(percentc - no_photon_percent)<0.1)[0][0]
 				except:
 					adu = np.where((percentc - no_photon_percent)>=0)[0][0]
+					
 				if adu < 1.0:
-					adu == 1.0
+					adu = 1.0
 				adus[i] = adu
 				newpat[i] = spipy.image.preprocess._transfer(np.array([pat]), 0, adu, force_poisson)[0]
 
@@ -141,7 +146,7 @@ if __name__ == '__main__':
 		if mpi_rank == 0:
 
 			# print status
-			print("write results of %s" % os.path.split(df)[-1])
+			print("- Write results of %s." % os.path.split(df)[-1])
 
 			adus = np.zeros(num_patterns)
 			newpats = np.zeros((num_patterns, sx, sy))
@@ -159,13 +164,13 @@ if __name__ == '__main__':
 				sfp.create_dataset("PhotonCount/adu_per_photon", data=adus, chunks=True, compression="gzip")
 				sfp.create_dataset("PhotonCount/rawpath", data=df)
 				sfp.close()
-				print("Save results to %s" % save_file)
+				print("- Save results to %s." % save_file)
 			else:
 				sfp = h5py.File(df, 'a')
 				sfp.create_dataset("PhotonCount/data", data=newpats, chunks=True, compression="gzip")
 				sfp.create_dataset("PhotonCount/adu_per_photon", data=adus, chunks=True, compression="gzip")
 				sfp.close()
-				print("Append results to %s" % df)
+				print("- Append results to %s." % df)
 
 
 	num_processed_gather = comm.gather(num_processed, root = 0)
@@ -177,7 +182,7 @@ if __name__ == '__main__':
 			su.write_status(status_file, ["status", "processed", "time"], \
 				[2, sum(num_processed_gather), end_time - start_time])
 
-			print("Finish.")
+			print("- Finish.")
 
 
 

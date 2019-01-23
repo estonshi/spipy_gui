@@ -368,7 +368,8 @@ def load_data(filepath, dataset_name):
     elif ext == '.npz':
         data = np.load(filepath)[dataset_name]
     elif ext == '.h5' or ext == '.cxi':
-        data = h5py.File(filepath)[dataset_name]
+        fp = h5py.File(filepath)
+        data = [fp, fp[dataset_name]]
     elif ext == '.mat':
         try:
             f = sio.loadmat(filepath)

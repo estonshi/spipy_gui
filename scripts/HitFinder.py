@@ -151,14 +151,15 @@ if __name__ == '__main__':
 			# read config param
 			mask_file  = config.get(sec, 'mask (.npy)')
 
-			print("Submit %d jobs for hit-finding of %s" % (mpi_size, run_name))
+			print("- Submit %d jobs for hit-finding of %s." % (mpi_size, run_name))
+			print("- Read config file %s." % os.path.split(config_ini)[-1])
 
 			# load mask
 			if os.path.exists(mask_file):
 				user_mask = np.load(mask_file)
 			else:
 				user_mask = None
-				print("Mask file is not given")
+				print("- Mask file is not given.")
 
 			# load darkcal
 			if dark_file is not None:
@@ -167,7 +168,7 @@ if __name__ == '__main__':
 				darkbg = darkcal_fp['bg'][...]
 				darkcal_fp.close()
 			else:
-				print("No dark calibration found, creating poisson background ...")
+				print("- No dark calibration found, creating poisson background ...")
 				fp = h5py.File(data_files[0], 'r')
 				meanV = np.mean(fp[inh5])
 				datashape = fp[inh5].shape[-2:]
@@ -199,7 +200,7 @@ if __name__ == '__main__':
 			grp3.create_dataset("background", data=darkbg, chunks=True, compression="gzip")
 			fp.close()
 			# print log
-			print("Save parameters to %s" %save_file)
+			print("- Save parameters to %s." % save_file)
 
 			'''
 			ranki = 0
@@ -238,6 +239,9 @@ if __name__ == '__main__':
 
 		for df in data_files:
 
+			if mpi_rank == 0:
+				print("- Processing %s ..." % df)
+
 			# load data
 			fp = h5py.File(df, 'r')
 			num_patterns = fp[inh5].shape[0]
@@ -274,7 +278,7 @@ if __name__ == '__main__':
 			if mpi_rank == 0:
 
 				# print status
-				print("write results of %s" % os.path.split(df)[-1])
+				print("- Write results of %s." % os.path.split(df)[-1])
 
 				# get labels
 				chi_score = np.zeros(num_patterns)
@@ -308,13 +312,13 @@ if __name__ == '__main__':
 					sfp.create_dataset("Hits/rawpath", data=df)
 					sfp.close()
 					# print log
-					print("Save patterns to %s" %save_file)
+					print("- Save patterns to %s." %save_file)
 
 					# save chi_scores
 					save_file = os.path.join(savepath, this_rank_file+".hfscores.dat")
 					np.savetxt(save_file, chi_score)
 					# print log
-					print("Save chi-scores to %s" %save_file)
+					print("- Save chi-scores to %s." %save_file)
 
 			# close data file
 			fp.close()
@@ -332,7 +336,7 @@ if __name__ == '__main__':
 			su.write_status(status_file, ["status", "processed", "hits", "time"], \
 				[2, sum(num_processed_gather), sum(num_hits_gather), end_time - start_time])
 
-			print("Finish.")
+			print("- Finish.")
 
 
 MPI.Finalize()

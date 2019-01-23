@@ -48,6 +48,7 @@ class MainWindow(QMainWindow):
         self.dispShape = None
         self.mask = None
         self.curve = None
+        self.h5obj = None
         self.acceptedFileTypes = [u'npy', u'npz', u'h5', u'mat', u'cxi', u'tif']
 
         self.dispItem = self.ui.imageView.getImageItem()
@@ -342,6 +343,12 @@ class MainWindow(QMainWindow):
         self.filepath = str(filepath)
         basename = os.path.basename(self.filepath)
         data = load_data(self.filepath, datasetName)
+        if type(data) == list:
+            if self.h5obj is not None:
+                self.h5obj.close()
+                self.h5obj = None
+            self.h5obj = data[0]
+            data = data[1]
         if len(data.shape) == 1:  # 1d curve
             if data.size == 1:  # single number
                 return None
@@ -460,6 +467,7 @@ class MainWindow(QMainWindow):
                     #print_with_timestamp("ERROR! Index out of range. %s axis frame %d" %(self.axis, self.frameIndex))
                     QtGui.QMessageBox.question(self, 'Error',
                             "ERROR! Index out of range. %s axis frame %d" % (self.axis, self.frameIndex), QtGui.QMessageBox.Ok)
+                    return None
             elif self.axis == 'y':
                 if 0 <= self.frameIndex < _y:
                     dispData = self.imageData[:, self.frameIndex, :]
@@ -467,6 +475,7 @@ class MainWindow(QMainWindow):
                     #print_with_timestamp("ERROR! Index out of range. %s axis frame %d" %(self.axis, self.frameIndex))
                     QtGui.QMessageBox.question(self, 'Error',
                             "ERROR! Index out of range. %s axis frame %d" % (self.axis, self.frameIndex), QtGui.QMessageBox.Ok)
+                    return None
             else:
                 if 0 <= self.frameIndex < _z:
                     dispData = self.imageData[:, :, self.frameIndex]
@@ -474,6 +483,7 @@ class MainWindow(QMainWindow):
                     #print_with_timestamp("ERROR! Index out of range. %s axis frame %d" %(self.axis, self.frameIndex))
                     QtGui.QMessageBox.question(self, 'Error',
                             "ERROR! Index out of range. %s axis frame %d" % (self.axis, self.frameIndex), QtGui.QMessageBox.Ok)
+                    return None
         elif len(self.imageShape) == 2:
             dispData = self.imageData
         if isinstance(dispData, np.ndarray):
@@ -495,7 +505,10 @@ class MainWindow(QMainWindow):
             "Are you sure to quit?", QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
             #print_with_timestamp('Bye-Bye.')
-            pg.exit()
+            #pg.exit()
+            if self.h5obj is not None:
+                self.h5obj.close()
+            del data_viewer_window
             data_viewer_window = None
         else:
             event.ignore()
@@ -524,6 +537,8 @@ class MainWindow(QMainWindow):
         if not self.showImage or self.imageData is None:
             return None
         dispData = self.calcDispData()
+        if dispData is None:
+            return None
         self.dispShape = dispData.shape
         if self.maskFlag:
             if self.mask is None:

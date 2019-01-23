@@ -39,6 +39,8 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		self.ui.comboBox.currentIndexChanged.connect(self.change_log_type)
 
 
+	###################################################
+
 	def load_jobs(self, refresh_main = False):
 		self.run_job.clear()
 		self.ui.treeWidget.clear()
@@ -83,32 +85,45 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		return 1
 
 
-	def timerEvent(self, event):
-		self.__load_log(self.log_jid)
-
-
-	def log_auto_refresh(self, istoggled):
-		if self.timer_id is not None:
-			self.killTimer(self.timer_id)
-			self.timer_id = None
-		if istoggled:
-			self.timer_id = self.startTimer(jobView.log_refresh_interval)
-
-
 	def refresh_jobtree(self):
 		self.load_jobs(False)
 
 
+	def treeItem_clicked(self, citem, column):
+		runviewkey = str(citem.text(0))
+		if runviewkey == "command history":
+			# top-level "command history"
+			jid = "command history"
+		elif self.ui.treeWidget.indexOfTopLevelItem(citem) >= 0:
+			# other top-level item
+			return
+		else:
+			# second-level item
+			jid = self.mainwindow.JobCenter.run_view[runviewkey]
+		self.log_jid = jid
+		self.log_reset()
+		self.log_auto_refresh(self.ui.radioButton.isChecked())
+		self.__load_log(jid)
+
+
+	###################################################
+
 	def __load_log(self, jid):
+
 		# cmd history
 		if jid == "command history":
 			cmd = utils.readprojectLog(self.mainwindow.dirname)
 			if cmd is None:
 				utils.show_message("I cannot find 'project.log'.")
 				return
+			# insert text
 			prev_text = self.ui.plainTextEdit.toPlainText()
-			self.ui.plainTextEdit.insertPlainText("".join(cmd)[len(prev_text):])
+			insertText = "".join(cmd)[len(prev_text):].strip("\n")
+			if len(insertText.strip("\n").strip()) == 0:
+				return
+			self.ui.plainTextEdit.appendPlainText(insertText)
 			return
+
 		# job logs
 		try:
 			savepath = self.mainwindow.JobCenter.jobs[jid].savepath
@@ -127,22 +142,34 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		else:
 			with open(stderr[0]) as fp:
 				lines = fp.readlines()
+		# insert text
 		prev_text = self.ui.plainTextEdit.toPlainText()
-		self.ui.plainTextEdit.insertPlainText("".join(cmd)[len(prev_text):])
+		insertText = "".join(lines)[len(prev_text):].strip("\n")
+		if len(insertText.strip("\n").strip()) == 0:
+				return
+		self.ui.plainTextEdit.appendPlainText(insertText)
 
 
-	def treeItem_clicked(self, citem, column):
-		runviewkey = str(citem.text(0))
-		if runviewkey == "command history":
-			jid = "command history"
-		else:
-			jid = self.mainwindow.JobCenter.run_view[runviewkey]
-		self.log_jid = jid
-		self.log_auto_refresh(self.ui.radioButton.isChecked())
-		self.__load_log(jid)
+	def log_reset(self):
+		self.ui.plainTextEdit.clear()
+
+
+	def log_auto_refresh(self, istoggled):
+		if self.timer_id is not None:
+			self.killTimer(self.timer_id)
+			self.timer_id = None
+		if istoggled:
+			self.timer_id = self.startTimer(jobView.log_refresh_interval)
 
 
 	def change_log_type(self):
+		self.log_reset()
+		self.__load_log(self.log_jid)
+
+
+	###################################################
+
+	def timerEvent(self, event):
 		self.__load_log(self.log_jid)
 
 
@@ -162,6 +189,8 @@ def show_jobView(parents):
 def load_jobtree():
 	global jv
 	ret = None
-	ret = jv.load_jobs(False)
+	jv.refresh_jobtree()
+	'''
 	if ret is None:
 		utils.show_message("Failed to refresh job tree in Job Viewer.")
+	'''
