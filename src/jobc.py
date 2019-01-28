@@ -4,6 +4,8 @@ from PyQt4 import QtWebKit
 
 import sys
 import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'pygui'))
+
 import shutil
 import glob
 import subprocess

@@ -5,6 +5,8 @@ from main_gui import Ui_MainWindow
 
 import sys
 import os
+sys.path.append(os.path.join(os.path.dirname(__file__), 'pygui'))
+
 import subprocess
 import glob
 from ConfigParser import ConfigParser

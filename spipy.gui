@@ -1,0 +1,4 @@
+
+SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+
+/usr/bin/env python -W ignore $SCRIPTPATH/src/start_app.py
