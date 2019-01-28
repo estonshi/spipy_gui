@@ -167,9 +167,14 @@ if __name__ == '__main__':
 				print("- Save results to %s." % save_file)
 			else:
 				sfp = h5py.File(df, 'a')
+				if "PhotonCount/data" in sfp:
+					del sfp["PhotonCount/data"]
+				if "PhotonCount/adu_per_photon" in sfp:
+					del sfp["PhotonCount/adu_per_photon"]
 				sfp.create_dataset("PhotonCount/data", data=newpats, chunks=True, compression="gzip")
 				sfp.create_dataset("PhotonCount/adu_per_photon", data=adus, chunks=True, compression="gzip")
 				sfp.close()
+				os.symlink(df, os.path.join(savepath, "photonCount.link.h5"))
 				print("- Append results to %s." % df)
 
 

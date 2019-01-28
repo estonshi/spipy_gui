@@ -121,6 +121,16 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 			self.jobs[jid].run_tag, self.jobs[jid].run_remarks)
 
 
+	def del_job_record(self, jid):
+		run_view_key = self.get_runviewkey(jid)
+		try:
+			self.jobs.pop(jid)
+			self.run_view.pop(run_view_key)
+			return 1
+		except:
+			return 0
+
+
 	def reverseForceOverwrite(self):
 		self.force_overwrite = not self.force_overwrite
 		utils.print2projectLog(self.rootdir, "Set project force overwrite to %s" % str(force_overwrite))
@@ -507,13 +517,17 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 	def get_run_status(self, run_name, module, assg, tag, remarks):
 		'''
 		input tag is 'tag' (no remarks)
+		return status or None
 		'''
 		# get status of runs
 		run_view_key = utils.fmt_runview_key(assg, run_name, tag, remarks)
 		if not self.run_view.has_key(run_view_key):
 			job_jss = None
-			lastest_job = "0"
 			job_dir = os.path.join(self.rootdir, module, assg, utils.fmt_job_dir(run_name, tag, remarks))
+			if os.path.isdir(job_dir):
+				lastest_job = "0"
+			else:
+				lastest_job = "-1"
 		else:
 			jid = self.run_view[run_view_key]
 			lastest_job = self.jobs[jid].process_obj
@@ -526,6 +540,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 
 	def get_run_status_2(self, jid):
 		# for given jid
+		# return status or None
 		if not self.jobs.has_key(jid):
 			return JobCenter.ERR
 		lastest_job = self.jobs[jid].process_obj
@@ -628,10 +643,21 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 			this_datadir = utils.read_config(config_file, [self.namespace['config_head'], 'Data Dir'])
 			# do not use raw dataset
 			if not job_obj.datafile[0].startswith(this_datadir):
+				assignments = os.path.split(this_datadir)[-1]
+				try:
+					tag_remarks = self.main_gui.tag_buffer[assignments][runtime['run_name']]
+					tag_remarks = self.main_gui.split_tag_remarks(tag_remarks)
+					if len(tag_remarks) != 2:
+						raise ValueError("boomb")
+				except:
+					utils.show_message("%s:\nI cannot find the data source, please check the parameters agian." % runtime['run_name'])
+					return None
+				'''
 				tag_remarks = self.tag_remarks_buffer[runtime['run_name']]
 				if len(tag_remarks) != 2:
 					utils.show_message("%s:\nI cannot find the data source, please check the parameters agian." % runtime['run_name'])
 					return None
+				'''
 				datafile = os.path.join(this_datadir, utils.fmt_job_dir(runtime['run_name'], tag_remarks[0], tag_remarks[1]), '*.h5')
 				datafile = glob.glob(datafile)
 				if len(datafile) == 0:

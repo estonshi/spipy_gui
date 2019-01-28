@@ -1,11 +1,12 @@
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from PyQt4 import QtWebKit
+from PyQt4 import Qt
 
 import sys
 import os
 import glob
 import subprocess
+import shutil
 from ConfigParser import ConfigParser
 from functools import partial
 
@@ -23,6 +24,7 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		# setup ui
 		self.ui = Ui_jobView()
 		self.ui.setupUi(self)
+		self.ui.treeWidget.setContextMenuPolicy(3)
 		# parents
 		self.mainwindow = mainwindow
 		# job buffer, {'run_name': [jid_1, jid_2 ,...], ...}
@@ -34,6 +36,7 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 
 		# trigger
 		self.ui.treeWidget.itemDoubleClicked.connect(self.treeItem_clicked)
+		self.ui.treeWidget.customContextMenuRequested.connect(self.jobtree_menu)
 		self.ui.radioButton.toggled.connect(self.log_auto_refresh)
 		self.ui.pushButton.clicked.connect(self.refresh_jobtree)
 		self.ui.comboBox.currentIndexChanged.connect(self.change_log_type)
@@ -66,8 +69,10 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 			# second level
 			for jid in jid_list:
 				status = self.mainwindow.JobCenter.get_run_status_2(jid)
+				if status is None:
+					continue
 				# color
-				cindex = self.mainwindow.namespace['process_status'].index(status.strip())
+				cindex = self.mainwindow.namespace['process_status'].index(status)
 				color = self.mainwindow.namespace['process_colors'][cindex]
 				# Item
 				tmp = QtGui.QTreeWidgetItem(tree_item)
@@ -104,6 +109,43 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		self.log_reset()
 		self.log_auto_refresh(self.ui.radioButton.isChecked())
 		self.__load_log(jid)
+
+
+	def jobtree_menu(self, pos):
+		selected = self.ui.treeWidget.selectedItems()
+		# show menu
+		menu = QtGui.QMenu()
+		a1 = menu.addAction("Delete job(s)")
+		# exec
+		action = menu.exec_(self.ui.treeWidget.mapToGlobal(pos))
+
+		success = 1
+		if action == a1:
+			warning = "Are you sure to delete all of the outputs of these job(s) ?\nNote: they cannot be restored after deletion.\n"
+			for si in selected:
+				warning = warning + str(si.text(0)) + '\n'
+			re = utils.show_warning(warning)
+			if re == 1:
+				for si in selected:
+					jid = self.mainwindow.JobCenter.run_view[str(si.text(0))]
+					job_path = self.mainwindow.JobCenter.jobs[jid].savepath
+					job_status = self.mainwindow.JobCenter.get_run_status_2(jid)
+					if job_status is None or job_status == self.mainwindow.JobCenter.RUN or job_status == self.mainwindow.JobCenter.SUB:
+						utils.show_message("The status of job %s is %s, cannot be deleted !" % (str(si.text()), str(job_status)) )
+						success = 0
+						continue
+					else:
+						try:
+							shutil.rmtree(job_path)
+						except:
+							utils.show_message("Fail to remove job %s !\n(%s)" % (str(si.text(0)), job_path) )
+							success = 0
+							continue
+						success = self.mainwindow.JobCenter.del_job_record(jid)
+		if success:
+			utils.show_message("All done!")
+		self.load_jobs()
+
 
 
 	###################################################

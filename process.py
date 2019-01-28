@@ -228,12 +228,17 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 		if me == self.namespace['process_HF']:
 			pass
 		elif me == self.namespace['process_FA'] or me == self.namespace['process_FAA']:
-			datac.append(self.namespace['process_HF'])
-			datac.append(self.namespace['process_AP'])
+			if self.namespace['process_HF'] in self.namespace['process_assignments']:
+				datac.append(self.namespace['process_HF'])
+			if self.namespace['process_AP'] in self.namespace['process_assignments']:
+				datac.append(self.namespace['process_AP'])
 		elif me == self.namespace['process_AP']:
-			datac.append(self.namespace['process_HF'])
-			datac.append(self.namespace['process_FA'])
-			datac.append(self.namespace['process_FAA'])
+			if self.namespace['process_HF'] in self.namespace['process_assignments']:
+				datac.append(self.namespace['process_HF'])
+			if self.namespace['process_FA'] in self.namespace['process_assignments']:
+				datac.append(self.namespace['process_FA'])
+			if self.namespace['process_FAA'] in self.namespace['process_assignments']:
+				datac.append(self.namespace['process_FAA'])
 		else:
 			pass
 		# label, choices, ret, title=None

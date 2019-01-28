@@ -37,6 +37,8 @@ class chosebox(QtGui.QDialog, QtCore.QEvent):
 		
 
 def show_chosebox(label, choices, ret, title=None):
+	# returned 'ret' is seleted index in choices
+	# if 'cancel' then ret will be the same as its original value
 	cb = chosebox(label, choices, ret, title)
 	cb.setModal(True)
 	cb.exec_()
