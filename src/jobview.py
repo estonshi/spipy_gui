@@ -41,7 +41,7 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 		self.ui.treeWidget.customContextMenuRequested.connect(self.jobtree_menu)
 		self.ui.radioButton.toggled.connect(self.log_auto_refresh)
 		self.ui.pushButton.clicked.connect(self.refresh_jobtree)
-		self.ui.comboBox.currentIndexChanged.connect(self.change_log_type)
+		self.ui.comboBox.activated.connect(self.change_log_type)
 
 
 	###################################################
@@ -114,19 +114,28 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 
 
 	def jobtree_menu(self, pos):
-		selected = self.ui.treeWidget.selectedItems()
 		# show menu
 		menu = QtGui.QMenu()
 		a1 = menu.addAction("Delete job(s)")
 		# exec
 		action = menu.exec_(self.ui.treeWidget.mapToGlobal(pos))
 
+		# selection
+		selected = []
+		for si in self.ui.treeWidget.selectedItems():
+			if self.ui.treeWidget.indexOfTopLevelItem(si) != -1:
+				children = si.takeChildren()
+				selected.extend(children)
+			else:
+				selected.append(si)
+
 		success = 1
 		if action == a1:
 			warning = "Are you sure to delete all of the outputs of these job(s) ?\nNote: they cannot be restored after deletion.\n"
+			choose_data = ""
 			for si in selected:
-				warning = warning + str(si.text(0)) + '\n'
-			re = utils.show_warning(warning)
+				choose_data = choose_data + str(si.text(0)) + '\n'
+			re = utils.show_warning(warning, choose_data)
 			if re == 1:
 				for si in selected:
 					jid = self.mainwindow.JobCenter.run_view[str(si.text(0))]
@@ -144,6 +153,10 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 							success = 0
 							continue
 						success = self.mainwindow.JobCenter.del_job_record(jid)
+			else:
+				success = 0
+		else:
+			success = 0
 		if success:
 			utils.show_message("All done!")
 		self.load_jobs()
@@ -173,6 +186,7 @@ class jobView(QtGui.QMainWindow, QtCore.QEvent):
 			savepath = self.mainwindow.JobCenter.jobs[jid].savepath
 		except:
 			utils.show_message("JID %s doesn't exist. Fail to load log." % str(jid) )
+			self.log_jid = "command history"
 			return
 		stdout = glob.glob(os.path.join(savepath, "*.out"))
 		stderr = glob.glob(os.path.join(savepath, "*.err"))

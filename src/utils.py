@@ -66,6 +66,16 @@ def fmt_job_dir(run_name, tag, remarks):
 	return "%s.%s.%s" % (run_name, tag, remarks)
 
 
+def split_jobdir_runviewkey(job_dir):
+	tmp = job_dir.split(".")
+	if len(tmp) == 3:
+		return {'run_name': tmp[0], 'tag': tmp[1], 'remarks': tmp[2]}
+	elif len(tmp) == 4:
+		return {'assignments': tmp[0], 'run_name': tmp[1], 'tag': tmp[2], 'remarks': tmp[3]}
+	else:
+		return None
+
+
 def fmt_runview_key(assgn, run_name, tag, remarks):
 	'''
 	return 'assgn.run_name.tag.remarks'
@@ -85,6 +95,16 @@ def extract_tag(assignments, tagfilename):
 		jobc.py    : extract_tag
 	'''
 	return tagfilename.split(assignments+"_")[-1].split('.ini')[0]
+
+
+def split_config(tagfilename):
+	'''
+	configuration file format : 'assgn_tag.ini'
+	[linked] :
+		process.py : extract_tag
+		jobc.py    : extract_tag
+	'''
+	return tagfilename.strip(".ini").split("_")
 
 
 def findnumber(string):
@@ -123,22 +143,26 @@ def compile_h5loc(loc, run_name):
 
 ##########
 
-def show_message(message):
+def show_message(message, informative=None):
 	msgBox = QtGui.QMessageBox()
-	msgBox.setTextFormat(QtCore.Qt.RichText)
+	msgBox.setTextFormat(QtCore.Qt.PlainText)
 	msgBox.setIcon(QtGui.QMessageBox.Information)
 	msgBox.setText(message)
+	if informative is not None:
+		msgBox.setInformativeText(informative)
 	msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
 	ret = msgBox.exec_()
 	if ret == QtGui.QMessageBox.Ok:
 		return 1
 
 
-def show_warning(message):
+def show_warning(message, informative=None):
 	msgBox = QtGui.QMessageBox()
-	msgBox.setTextFormat(QtCore.Qt.RichText)
+	msgBox.setTextFormat(QtCore.Qt.PlainText)
 	msgBox.setIcon(QtGui.QMessageBox.Warning)
 	msgBox.setText(message)
+	if informative is not None:
+		msgBox.setInformativeText(informative)
 	msgBox.addButton(QtGui.QPushButton('NO'), QtGui.QMessageBox.NoRole)
 	msgBox.addButton(QtGui.QPushButton('YES'), QtGui.QMessageBox.YesRole)
 	ret = msgBox.exec_()
@@ -151,6 +175,16 @@ def show_warning(message):
 
 def check_PBS():
 	cmd = "command -v qsub qstat pestat"
+	cmds = shlex.split(cmd)
+	try:
+		tmp = subprocess.check_output(cmds)
+		return True
+	except:
+		return False
+
+
+def check_LSF():
+	cmd = "command -v bsub bkill bjobs"
 	cmds = shlex.split(cmd)
 	try:
 		tmp = subprocess.check_output(cmds)
@@ -489,10 +523,14 @@ def read_ini():
 		tmp = cl.split('.')
 		namespace['process_colors'][i] = [int(tmp[0]),int(tmp[1]),int(tmp[2])]
 	namespace['darkcal'] = conf.get('process', 'darkcal')
+	namespace['classify_assignments'] = conf.get('classify', 'assignments').split(',')
 	namespace['classify_decomp'] = conf.get('classify', 'decomp').split(',')
 	namespace['merge_sym'] = conf.get('merge', 'sym').split(',')
+	namespace['merge_assignments'] = conf.get('merge', 'assignments').split(',')
 	namespace['phasing_method'] = conf.get('phasing', 'method').split(',')
-	# now add function nickname
+	namespace['phasing_assignments'] = conf.get('phasing', 'assignments').split(',')
+	namespace['simulation_assignments'] = conf.get('simulation', 'assignments').split(',')
+	# now add nickname
 	namespace['process_HF'] = conf.get('process', 'HF')
 	namespace['process_FA'] = conf.get('process', 'FA')
 	namespace['process_FAA'] = conf.get('process', 'FAA')
@@ -504,10 +542,15 @@ def read_ini():
 	namespace['classify_LLE'] = conf.get('classify', 'LLE')
 	namespace['classify_SPEM'] = conf.get('classify', 'SPEM')
 	namespace['classify_TSNE'] = conf.get('classify', 'TSNE')
+	namespace['classify_DCPS'] = conf.get('classify', 'DCPS')
+	namespace['phasing_PJ'] = conf.get('phasing', 'PJ')
 	namespace['phasing_RAAR'] = conf.get('phasing', 'RAAR')
 	namespace['phasing_DM'] = conf.get('phasing', 'DM')
 	namespace['phasing_ERA'] = conf.get('phasing', 'ERA')
 	namespace['merge_ICOSYM'] = conf.get('merge', 'ICOSYM')
+	namespace['merge_emc'] = conf.get('merge', 'emc')
+	namespace['simulation_FFT'] = conf.get('simulation', 'FFT')
+	namespace['simulation_AS'] = conf.get('simulation', 'AS')
 	return namespace
 
 

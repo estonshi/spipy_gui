@@ -2,14 +2,16 @@
 
 set -e
 
-### [-s] python script to run
+### [-s] script or command to run
 ### [-t] number of processes
 ### [-p] work dir   ('.../run.tag.remarks')
 ### [-q] queue name
 ### [-y] submit type, PBS/LSF/None
+### [-z] pbs pnn for one node, int 1~24
+### [-e] execuation type, 'standard' : python file, 'customed' : C/C++ exec command
 
 
-while getopts "t:s:p:q:y:" arg; do
+while getopts "t:s:p:q:y:z:e:" arg; do
 	case $arg in
 		t)
 			pnum=$OPTARG
@@ -28,6 +30,9 @@ while getopts "t:s:p:q:y:" arg; do
 			;;
 		z)
 			pbs_pnn=$OPTARG
+			;;
+		e)
+			exec_type=$OPTARG
 			;;
 		*)
 			exit 1
@@ -51,14 +56,18 @@ if [ "$jss"x = "PBS"x ]; then
 	fi
 	n_node=$[$pnum/$n_ppn+1]
 	### submit command
-	SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
+	if [ "$exec_type"x = "standard"x ]; then
+		SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini"
+	else
+		SUB="$script"
+	fi
 	### qsub -e ${jobname}.err -o ${jobname}.out -N $jobname -l nodes=$n_node:ppn=$n_ppn
 	### write to workdir
 	echo "#!/bin/bash" >> $SFILE
 	echo "#PBS -N ${jobname}" >> SFILE
 	echo "#PBS -q low" >> SFILE
-	echo "#PBS -j oe"
-	echo "#PBS -o ${jobname}.joinLog"
+	echo "#PBS -o ${jobname}.out"
+	echo "#PBS -e ${jobname}.err"
 	echo "#PBS -l nodes=${n_node}:ppn=${n_ppn}"
 	echo "cd $PBS_O_WORKDIR" >> $SFILE
 	echo $SUB >> $SFILE
@@ -68,7 +77,11 @@ if [ "$jss"x = "PBS"x ]; then
 
 elif [ "$jss"x = "LSF"x ]; then
 	### submit command
-	SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum mpirun -n $pnum python -W ignore $script runtime.json config.ini"
+	if [ "$exec_type"x = "standard"x ]; then
+		SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum mpirun -n $pnum python -W ignore $script runtime.json config.ini"
+	else
+		SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum $script"
+	fi
 	### write to workdir
 	echo "#!/bin/bash" >> $SFILE
 	echo $SUB >> $SFILE
@@ -79,7 +92,11 @@ elif [ "$jss"x = "LSF"x ]; then
 
 else
 	### submit directly
-	SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
+	if [ "$exec_type"x = "standard"x ]; then
+		SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
+	else
+		SUB="$script 1>${jobname}.out 2>${jobname}.err"
+	fi
 	### write to workdir
 	echo "#!/bin/bash" >> $SFILE
 	echo $SUB >> $SFILE

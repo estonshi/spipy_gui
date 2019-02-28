@@ -149,7 +149,7 @@ if __name__ == '__main__':
 			print("- Write results of %s." % os.path.split(df)[-1])
 
 			adus = np.zeros(num_patterns)
-			newpats = np.zeros((num_patterns, sx, sy))
+			newpats = np.zeros((num_patterns, sx, sy), dtype=int)
 			for tmp in adus_gather:
 				adus[tmp.keys()] = tmp.values()
 			for tmp in newpat_gather:
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
 
 
-MPI.Finalize()
+	MPI.Finalize()
 
 
 

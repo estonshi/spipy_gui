@@ -18,6 +18,8 @@ import jobc
 import jobview
 import chosebox
 import data_viewer.data_viewer as data_viewer
+import job_benchmark
+#import JobBenchmark, plot_classify_features
 
 
 class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
@@ -45,17 +47,54 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		# tag_buffer is {assignments:{run_name:tag_remarks}, ...}
 		self.tag_buffer = None
 		# setup triggers
+		# process tab
 		self.ui.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 		self.ui.comboBox_2.currentIndexChanged.connect(self.js_changed)
 		self.ui.comboBox.currentIndexChanged.connect(self.assignments_changed)
 		self.ui.comboBox_3.currentIndexChanged.connect(self.decomp_changed)
 		self.ui.pushButton.clicked.connect(self.view_job)
-		# self.ui.pushButton_2.clicked.connect(self.view_history)
 		self.ui.pushButton_3.clicked.connect(partial(process.parameters_setting, self))
 		self.ui.pushButton_6.clicked.connect(self.refresh_table)
 		self.ui.checkBox_3.stateChanged.connect(self.autorefresh)
 		self.ui.tableWidget.customContextMenuRequested.connect(self.table_menu)
 		self.ui.tableWidget.cellDoubleClicked.connect(self.cell_dclicked)
+		# merge tab
+		self.ui.pushButton_8.clicked.connect(self.merge_cxi_file)
+		self.ui.pushButton_10.clicked.connect(self.merge_mask_file)
+		self.ui.pushButton_11.clicked.connect(self.merge_bin_file)
+		self.ui.pushButton_22.clicked.connect(self.merge_load_config)
+		self.ui.pushButton_23.clicked.connect(self.merge_save_config)
+		self.ui.pushButton_12.clicked.connect(self.run_merge)
+		self.ui.pushButton_28.clicked.connect(self.merge_project)
+		self.ui.pushButton_13.clicked.connect(self.merge_plot)
+		# phasing tab
+		self.ui.pushButton_14.clicked.connect(self.phase_input_file)
+		self.ui.pushButton_15.clicked.connect(self.phase_mask_file)
+		self.ui.pushButton_16.clicked.connect(self.phase_init_file)
+		self.ui.pushButton_24.clicked.connect(self.phase_load_config)
+		self.ui.pushButton_25.clicked.connect(self.phase_save_config)
+		self.ui.pushButton_29.clicked.connect(self.phase_project)
+		self.ui.pushButton_17.clicked.connect(self.run_phase)
+		self.ui.pushButton_18.clicked.connect(self.phase_plot)
+		# simulation tab
+		self.ui.pushButton_19.clicked.connect(self.simu_input_file)
+		self.ui.pushButton_20.clicked.connect(self.simu_mask_file)
+		self.ui.comboBox_13.currentIndexChanged.connect(self.simu_algorithm)
+		self.ui.comboBox_19.currentIndexChanged.connect(self.simu_euler_angles)
+		self.ui.pushButton_26.clicked.connect(self.simu_load_config)
+		self.ui.pushButton_27.clicked.connect(self.simu_save_config)
+		self.ui.pushButton_32.clicked.connect(self.simu_euler_file)
+		self.ui.pushButton_31.clicked.connect(self.simu_project)
+		self.ui.pushButton_21.clicked.connect(self.run_simu)
+		self.ui.pushButton_30.clicked.connect(self.simu_plot)
+		# filtering tab
+		self.ui.pushButton_33.clicked.connect(self.filter_save_manifold)
+		self.ui.pushButton_5.clicked.connect(self.filter_save_tsne)
+		self.ui.pushButton_4.clicked.connect(self.filter_input_file)
+		self.ui.pushButton_9.clicked.connect(self.filter_mask_file)
+		self.ui.pushButton_7.clicked.connect(self.filter_test_run)
+		self.ui.pushButton_34.clicked.connect(self.filter_run)
+		self.ui.pushButton_35.clicked.connect(self.filter_plot)
 
 
 	def setup(self, workpath, datapath, jss, datapathtype, format_index):
@@ -100,6 +139,11 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.comboBox_9.addItem(method)
 			self.ui.comboBox_10.addItem(method)
 			self.ui.comboBox_11.addItem(method)
+		# setup simulation
+		for algorithm in self.namespace['simulation_assignments']:
+			self.ui.comboBox_13.addItem(algorithm)
+		self.ui.lineEdit_24.setVisible(False)
+		self.ui.pushButton_32.setVisible(False)
 		# setup monitors
 		self.table_monitor = None
 		# draw table
@@ -119,9 +163,30 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 				self.ui.comboBox_2.setCurrentIndex(0)
 			else:
 				self.jss = str(self.ui.comboBox_2.currentText())
+		elif self.ui.comboBox_2.itemText(index) == "LSF":
+			if not utils.check_LSF():
+				utils.show_message("No LSF detected !")
+				self.ui.comboBox_2.setCurrentIndex(0)
+			else:
+				self.jss = str(self.ui.comboBox_2.currentText())
 		else:
-			pass
+			return
 		self.JobCenter.setjss(self.jss)
+
+
+	def load_module_config(self, module_name):
+		'''
+			Only for Merge, Phasing and Simulation
+		'''
+		ret = [None]
+		choices = os.path.join(self.dirname, module_name, 'config/*.ini')
+		choices = glob.glob(choices)
+		config_name = [os.path.split(c)[-1] for c in choices]
+		chosebox.show_chosebox("config file", config_name, ret, "Configuration")
+		if ret[0] is None:
+			return None
+		chosen = choices[ret[0]]
+		return chosen
 
 
 	"""
@@ -280,7 +345,7 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 
 			if action == a1:
 				utils.print2projectLog(self.dirname, "Choose %s on %s" % (assignments, str(selected_runs)))
-				self.JobCenter.TableRun_showoff(job_type, selected_runs, selected_datafile, selected_tag_remarks)
+				self.JobCenter.TableRun_showoff(job_type, selected_runs, selected_datafile, None)
 			#elif action == a2:
 			#	print("Terminate all jobs of %s" % str(selected_runs))
 			elif len(selected_runs) == 1 and action == a4:
@@ -639,6 +704,197 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 			self.ui.widget_12.setVisible(False)
 
 
+	def filter_save_manifold(self, test = False):
+		if not test:
+			tag_name = str(self.ui.lineEdit_16.text())
+		else:
+			tag_name = "buffer-ini"
+		# consistent with process.py
+		if len(tag_name) == 0 or '.' in tag_name or '_' in tag_name:
+			utils.show_message("Please give a correct name for config file !\n Do not contain '.' or '_' in tag name.")
+			return
+		if not test:
+			save_file = os.path.join(self.dirname, self.namespace['project_structure'][1], "config/%s_%s.ini" % (self.namespace['classify_DCPS'], tag_name))
+		# # # # # # # # #
+		params = {}
+		params['low_cut_percent'] = self.ui.doubleSpinBox.value()
+		params['method'] = "%d, %s" % (self.ui.comboBox_3.currentIndex(), self.ui.comboBox_3.currentText())
+		params['LLE_method'] = "%d, %s" % (self.ui.comboBox_4.currentIndex(), self.ui.comboBox_4.currentText())
+		params['LLE_neighbors'] = self.ui.spinBox_2.value()
+		params['components'] = self.ui.spinBox.value()
+		params['group_size'] = self.ui.spinBox_4.value()
+		params['njobs'] = self.ui.spinBox_3.value()
+		# write to file
+		params_write = {}
+		params_write[self.namespace['config_head']] = params
+		if not test:
+			utils.write_config(save_file, params_write)
+			utils.show_message("Save successfully !\n(%s)" % save_file)
+			utils.print2projectLog(self.dirname, "Save %s" % save_file)
+		else:
+			return params_write
+
+
+	def filter_save_tsne(self, test = False):
+		if not test:
+			tag_name = str(self.ui.lineEdit_17.text())
+		else:
+			tag_name = "buffer-ini"
+		# consistent with process.py
+		if len(tag_name) == 0 or '.' in tag_name or '_' in tag_name:
+			utils.show_message("Please give a correct name for config file !\n Do not contain '.' or '_' in tag name.")
+			return
+		if not test:
+			save_file = os.path.join(self.dirname, self.namespace['project_structure'][1], "config/%s_%s.ini" % (self.namespace['classify_TSNE'], tag_name))
+		# # # # # # # # #
+		params = {}
+		params['low_cut_percent'] = self.ui.doubleSpinBox_2.value()
+		params['perplexity'] = self.ui.spinBox_6.value()
+		params['PCA_out_dim'] = self.ui.spinBox_7.value()
+		params['out_dim'] = self.ui.spinBox_5.value()
+		params['theta'] = self.ui.doubleSpinBox_3.value()
+		params['max_iter'] = self.ui.spinBox_8.value()
+		params['group_size'] = self.ui.spinBox_9.value()
+		params['njobs'] = self.ui.spinBox_10.value()
+		# write to file
+		params_write = {}
+		params_write[self.namespace['config_head']] = params
+		if not test:
+			utils.write_config(save_file, params_write)
+			utils.show_message("Save successfully !\n(%s)" % save_file)
+			utils.print2projectLog(self.dirname, "Save %s" % save_file)
+		else:
+			return params_write
+
+
+	def filter_input_file(self):
+		cxifile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select h5/cxi file to open", "", "DATA (*.h5 *.cxi)"))
+		if not os.path.exists(cxifile):
+			return
+		self.ui.lineEdit.setText(cxifile)
+
+
+	def filter_mask_file(self):
+		binfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select mask file to open", "", "MASK (*.bin *.byt *.npy)"))
+		if not os.path.exists(binfile):
+			return
+		self.ui.lineEdit_5.setText(binfile)
+
+
+	def __filter_check_run(self):
+		# success, return 'runtime' dict; else return None
+		runtime = {}
+		tmp = str(self.ui.lineEdit_2.text())
+		if len(tmp) == 0:
+			utils.show_message("'inh5' is empty !")
+			return None
+		else:
+			runtime['inh5'] = tmp
+		tmp = str(self.ui.lineEdit.text())
+		if os.path.isfile(tmp):
+			runtime['dataset'] = [tmp]
+		else:
+			utils.show_message("Dataset file is invalid !")
+			return None
+		tmp = str(self.ui.lineEdit_5.text())
+		if os.path.isfile(tmp):
+			runtime['mask'] = tmp
+		elif tmp.lower() == "none":
+			runtime['mask'] = None
+		else:
+			utils.show_message("Mask file is invalid !")
+			return None
+		# success !
+		return runtime
+
+
+	def filter_test_run(self):
+		# get runtime
+		runtime = self.__filter_check_run()
+		if runtime is None:
+			return
+		runtime['benchmark'] = True
+		# choose assignments
+		assignments = self.namespace['classify_assignments']
+		ret = [None]
+		chosebox.show_chosebox("Assignments", assignments, ret, "Choose assignments")
+		if ret[0] is None:
+			return
+		assignments = assignments[ret[0]]
+		if assignments == self.namespace['classify_DCPS']:
+			# manifold
+			config = self.filter_save_manifold(test = True)
+			# save path
+			runtime['run_name'] = assignments
+			runtime['savepath'] = os.path.join(self.dirname, self.namespace['project_structure'][1], assignments, ".buffer")
+			# submit to job-testing window
+			jb = job_benchmark.JobBenchmark(runtime, config, self, "Manifold Filtering")
+			jb.showWindow()
+		elif assignments == self.namespace['classify_TSNE']:
+			# t-sne
+			config = self.filter_save_tsne(test = True)
+			runtime['run_name'] = assignments
+			runtime['savepath'] = os.path.join(self.dirname, self.namespace['project_structure'][1], assignments, ".buffer")
+			# submit to job-testing window
+			jb = job_benchmark.JobBenchmark(runtime, config, self, "t-SNE Filtering")
+			jb.showWindow()
+		else:
+			pass
+
+
+	def filter_run(self):
+		# get runtime
+		runtime = self.__filter_check_run()
+		if runtime is None:
+			return
+		runtime['benchmark'] = False
+		# choose assignments
+		assignments = self.namespace['classify_assignments']
+		ret = [None]
+		chosebox.show_chosebox("Assignments", assignments, ret, "Choose assignments")
+		if ret[0] is None:
+			return
+		assignments = assignments[ret[0]]
+		job_type  = self.namespace['project_structure'][1] + "/" + assignments
+		run_name = os.path.split(runtime['dataset'][0])[-1]
+		run_name = run_name.replace(".", "")
+		run_name = run_name.replace("_", "")
+		datafile = runtime.pop("dataset")    # datafile is a list (contain only 1 item)!
+		self.JobCenter.TableRun_showoff(job_type, [run_name], {run_name:datafile}, runtime=runtime)
+		utils.print2projectLog(self.dirname, "Choose %s on %s" % (assignments, run_name))
+
+
+	def filter_plot(self):
+		# choose project
+		path = os.path.join(self.dirname, self.namespace['project_structure'][1], '*/*.*.*' )
+		path = glob.glob(path)
+		project = [f.split(self.namespace['project_structure'][1])[-1].strip("/") for f in path]
+		ret = [None]
+		chosebox.show_chosebox("Project", project, ret, "Choose Project")
+		if ret[0] is None:
+			return
+		proj_chosen = path[ret[0]]
+
+		# plot
+		h5file = glob.glob(os.path.join(proj_chosen, "*.h5"))
+		if len(h5file) == 1:
+			h5file = h5file[0]
+		else:
+			utils.show_message("Cannot determine which h5 file to use.",\
+						 "- The project doesn't finish (successfully)\n\
+						 - There are more than 1 hdf5 files in the folder")
+			return
+		cmd = "python %s --type 0 %s" % (os.path.join(os.path.dirname(__file__), "job_benchmark.py"), h5file)
+		subprocess.check_call(cmd, shell=True)
+		utils.print2projectLog(self.dirname, "Show result of %s" % project[ret[0]])
+
+
+
+
+	'''
+		Tool box
+	'''
+
 
 	def view_job(self):
 		jobview.show_jobView(self)
@@ -654,10 +910,598 @@ class SPIPY_MAIN(QtGui.QMainWindow, QtCore.QEvent):
 		Merge Tab
 	'''
 
+	def merge_cxi_file(self):
+		cxifile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select h5/cxi file to open", "", "DATA (*.h5 *.cxi)"))
+		if not os.path.exists(cxifile):
+			return
+		self.ui.lineEdit_3.setText(cxifile)
 	
 
+	def merge_mask_file(self):
+		binfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select mask file to open", "", "MASK (*.bin *.byt *.npy)"))
+		if not os.path.exists(binfile):
+			return
+		self.ui.lineEdit_6.setText(binfile)
 
 
+	def merge_bin_file(self):
+		binfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .bin file to open", "", "MODEL (*.bin *.byt)"))
+		if not os.path.exists(binfile):
+			return
+		self.ui.lineEdit_7.setText(binfile)
+		
+
+	def merge_load_config(self):
+		config_file = self.load_module_config(self.namespace['project_structure'][2])
+		if config_file is None:
+			return
+		chead = self.namespace['config_head']
+		# read config
+		try:
+			config = utils.read_config(config_file)
+			# load
+			self.ui.lineEdit_6.setText(config.get(chead, "mask"))
+			self.ui.lineEdit_4.setText(config.get(chead, "data-path in cxi/h5"))
+			self.ui.doubleSpinBox_4.setValue(config.getfloat(chead, "clen"))
+			self.ui.doubleSpinBox_5.setValue(config.getfloat(chead, "lambda"))
+			self.ui.spinBox_11.setValue(config.getint(chead, "det_x"))
+			self.ui.spinBox_12.setValue(config.getint(chead, "det_y"))
+			self.ui.doubleSpinBox_6.setValue(config.getfloat(chead, "pix_size"))
+			self.ui.spinBox_13.setValue(config.getint(chead, "beam_stop"))
+			self.ui.doubleSpinBox_7.setValue(config.getfloat(chead, "ewald_rad"))
+			self.ui.spinBox_17.setValue(config.getint(chead, "num_div"))
+			self.ui.doubleSpinBox_9.setValue(config.getfloat(chead, "beta"))
+			self.ui.doubleSpinBox_8.setValue(config.getfloat(chead, "beta_t"))
+			self.ui.spinBox_15.setValue(config.getint(chead, "beta_i"))
+			self.ui.spinBox_16.setValue(config.getint(chead, "scaling"))
+			symm_string = config.get(chead, "symmetry")
+			self.ui.comboBox_5.setCurrentIndex(int(symm_string.split(',')[0]))
+			selection_string = config.get(chead, "data_selection")
+			self.ui.comboBox_6.setCurrentIndex(int(selection_string.split(',')[0]))
+			self.ui.lineEdit_7.setText(config.get(chead, "start_model"))
+			self.ui.lineEdit_18.setText(utils.extract_tag(self.namespace['merge_emc'], config_file)+'-new')
+		except Exception as err:
+			utils.show_message("Error happens while loading config file !", str(err))
+			return
+
+
+	def merge_save_config(self):
+		tag_name = str(self.ui.lineEdit_18.text())
+		# consistent with process.py
+		if len(tag_name) == 0 or '.' in tag_name or '_' in tag_name:
+			utils.show_message("Please give a correct name for config file !\n Do not contain '.' or '_' in tag name.")
+			return
+		save_file = os.path.join(self.dirname, self.namespace['project_structure'][2], "config/%s_%s.ini" % (self.namespace['merge_emc'], tag_name))
+		# # # # # # # # #
+		params = {}
+		# mask
+		maskfile = str(self.ui.lineEdit_6.text())
+		if maskfile.lower() == "none":
+			maskfile = None
+		elif os.path.isfile(maskfile) and os.path.splitext(maskfile)[-1] not in ['.npy', '.byt', '.bin']:
+			utils.show_message("Please choose correct mask file (.npy .byt .bin) !")
+			return
+		elif not os.path.isfile(maskfile):
+			re = utils.show_warning("'Mask File' is invalid, set to None, continue ?")
+			if re == 1:
+				maskfile = None
+			else:
+				return
+		params["mask"] = maskfile
+		# start model
+		start_model = str(self.ui.lineEdit_7.text())
+		if start_model.lower() == "random":
+			start_model = "Random"
+		elif os.path.isfile(start_model) and os.path.splitext(start_model)[-1] not in ['.byt', '.bin']:
+			utils.show_message("Please choose correct start model (.byt .bin) !")
+			return
+		elif not os.path.isfile(start_model):
+			re = utils.show_warning("'Start Model' is invalid, set to Random, continue ?")
+			if re == 1:
+				start_model = "Random"
+			else:
+				return
+		# inh5
+		inh5 = str(self.ui.lineEdit_4.text())
+		if len(inh5) == 0:
+			utils.show_message("'Data inside h5' shouldn't be empty !")
+			return
+		params['data-path in cxi/h5'] = inh5
+		# others
+		params['clen'] = self.ui.doubleSpinBox_4.value()
+		params['lambda'] = self.ui.doubleSpinBox_5.value()
+		params['det_x'] = self.ui.spinBox_11.value()
+		params['det_y'] = self.ui.spinBox_12.value()
+		params['pix_size'] = self.ui.doubleSpinBox_6.value()
+		params['beam_stop'] = self.ui.spinBox_13.value()
+		# if ewald_rad = 0, change to -1 when write emc config
+		params['ewald_rad'] = self.ui.doubleSpinBox_7.value()
+		params['num_div'] = self.ui.spinBox_17.value()
+		params['beta'] = self.ui.doubleSpinBox_9.value()
+		params['beta_t'] = self.ui.doubleSpinBox_8.value()
+		params['beta_i'] = self.ui.spinBox_15.value()
+		params['scaling'] = self.ui.spinBox_16.value()
+		params['symmetry'] = "%d,%s" % (self.ui.comboBox_5.currentIndex(), str(self.ui.comboBox_5.currentText()))
+		params['data_selection'] = "%d,%s" % (self.ui.comboBox_6.currentIndex(), str(self.ui.comboBox_6.currentText()))
+		params['start_model'] = start_model
+		# write to file
+		params_write = {}
+		params_write[self.namespace['config_head']] = params
+		utils.write_config(save_file, params_write)
+		utils.show_message("Save successfully !\n(%s)" % save_file)
+		utils.print2projectLog(self.dirname, "Save %s" % save_file)
+
+
+	def merge_project(self):
+		path = os.path.join(self.dirname, self.namespace['project_structure'][2], self.namespace['merge_emc'], '*.*.*' )
+		path = ['New Project'] + glob.glob(path)
+		project = [os.path.split(f)[-1] for f in path]
+		ret = [None]
+		chosebox.show_chosebox("Project", project, ret, "Choose Project")
+		if ret[0] is None:
+			return
+		proj_chosen = path[ret[0]]
+		if ret[0] == 0 or not os.path.exists(proj_chosen):
+			self.ui.lineEdit_8.setText("")
+			self.ui.lineEdit_21.setText('New Project')
+			self.ui.lineEdit_8.setReadOnly(False)
+			self.ui.radioButton.setEnabled(False)
+			self.ui.pushButton_13.setEnabled(False)
+		else:
+			self.ui.lineEdit_8.setText(utils.split_jobdir_runviewkey(project[ret[0]])['run_name'])
+			self.ui.lineEdit_21.setText(project[ret[0]])
+			self.ui.lineEdit_8.setReadOnly(True)
+			self.ui.radioButton.setEnabled(True)
+			self.ui.pushButton_13.setEnabled(True)
+
+
+	def run_merge(self):
+		# judge whether spipy is fully compiled
+		try:
+			import spipy
+			spipy.info.EMC_MPI
+		except:
+			utils.show_message("Your spipy package are compiled without EMC module. See https://github.com/LiuLab-CSRC/spipy/wiki for details.")
+			return
+
+		# load jobcenter
+		job_type = self.namespace['project_structure'][2] + '/' + self.namespace['merge_emc']
+		run_name = str(self.ui.lineEdit_8.text())
+		if '.' in run_name:
+			utils.show_message("The dot character ('.') is not allowed in Project Name !")
+			return
+		data_file = str(self.ui.lineEdit_3.text())
+		processes = self.ui.spinBox_14.value()
+		threads = self.ui.spinBox_18.value()
+		iterations = self.ui.spinBox_19.value()
+		if not self.ui.radioButton.isEnabled():
+			resume = False
+		else:
+			if self.ui.radioButton.isChecked():
+				resume = True
+			else:
+				resume = False
+		runtime = {'num_proc':processes, 'num_thread':threads, 'iters':iterations, 'resume':resume}
+		if len(run_name) == 0:
+			utils.show_message("Project name should not be blank !")
+			return
+		if not os.path.isfile(data_file):
+			utils.show_message("Please choose data (HDF5) file !")
+			return
+		# notice again
+		re = utils.show_warning("Confirm to submit this job ?\n", \
+			"Job detail : %s (%s, %d iterations)\nJobs : %d (%d threads)" \
+			% (job_type, run_name, iterations, processes, threads))
+		if re == 1:
+			self.JobCenter.TableRun_showoff(job_type, [run_name], {run_name:[data_file]}, runtime)
+			utils.print2projectLog(self.dirname, "Choose %s on %s" % (self.namespace['merge_emc'], run_name))
+
+
+	def merge_plot(self):
+		job_info = utils.split_jobdir_runviewkey(str(self.ui.lineEdit_21.text()))
+		try:
+			jid = self.JobCenter.get_jid(self.namespace['merge_emc'], job_info['run_name'], job_info['tag'], job_info['remarks'])
+			savepath = self.JobCenter.jobs[jid].savepath
+			cmd = "cd %s;python autoplot.py" % os.path.join(savepath, job_info['run_name'])
+			subprocess.check_call(cmd, shell=True)
+			utils.print2projectLog(self.dirname, "Show result of %s.%s.%s.%s" % \
+				(self.namespace['merge_emc'], job_info['run_name'], job_info['tag'], job_info['remarks']))
+		except Exception as err:
+			utils.show_message("Fail to plot result.", str(err))
+
+
+	'''
+		Phasing Tab
+	'''
+
+	def phase_input_file(self):
+		inputfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .npy/.bin/.mat file to open", "", "DATA (*.npy *.bin *.mat)"))
+		if not os.path.exists(inputfile):
+			return
+		self.ui.lineEdit_9.setText(inputfile)
+
+
+	def phase_mask_file(self):
+		maskfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .npy file to open", "", "MASK (*.npy)"))
+		if not os.path.exists(maskfile):
+			return
+		self.ui.lineEdit_10.setText(maskfile)
+
+
+	def phase_init_file(self):
+		inputfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .npy/.bin/.mat file to open", "", "DATA (*.npy *.bin *.mat)"))
+		if not os.path.exists(inputfile):
+			return
+		self.ui.lineEdit_11.setText(inputfile)
+
+
+	def phase_load_config(self):
+		config_file = self.load_module_config(self.namespace['project_structure'][3])
+		if config_file is None:
+			return
+		chead = self.namespace['config_head']
+		# read config
+		try:
+			config = utils.read_config(config_file)
+			# load
+			self.ui.lineEdit_10.setText(config.get(chead, "mask"))
+			tmp = config.get(chead, "dtype").split(',')[0]
+			self.ui.comboBox_8.setCurrentIndex(int(tmp))
+			self.ui.lineEdit_11.setText(config.get(chead, "start_model"))
+			self.ui.spinBox_20.setValue(config.getint(chead, "inner_mask"))
+			self.ui.spinBox_21.setValue(config.getint(chead, "outer_mask"))
+			self.ui.spinBox_22.setValue(config.getint(chead, "o_o_mask"))
+			tmp = config.get(chead, "iter_type_3").split(',')[0]
+			self.ui.comboBox_11.setCurrentIndex(int(tmp))
+			tmp = config.get(chead, "iter_type_2").split(',')[0]
+			self.ui.comboBox_10.setCurrentIndex(int(tmp))
+			tmp = config.get(chead, "iter_type_1").split(',')[0]
+			self.ui.comboBox_9.setCurrentIndex(int(tmp))
+			self.ui.spinBox_25.setValue(config.getint(chead, "iter_num_3"))
+			self.ui.spinBox_24.setValue(config.getint(chead, "iter_num_2"))
+			self.ui.spinBox_23.setValue(config.getint(chead, "iter_num_1"))
+			self.ui.spinBox_27.setValue(config.getint(chead, "repeat"))
+			self.ui.spinBox_26.setValue(config.getint(chead, "support"))
+			self.ui.doubleSpinBox_14.setValue(config.getfloat(chead, "beta"))
+			
+			self.ui.lineEdit_19.setText(utils.extract_tag(self.namespace['phasing_PJ'], config_file)+'-new')
+		except Exception as err:
+			utils.show_message("Error happens while loading config file !", str(err))
+			return
+
+
+	def phase_save_config(self):
+		tag_name = str(self.ui.lineEdit_19.text())
+		# consistent with process.py
+		if len(tag_name) == 0 or '.' in tag_name or '_' in tag_name:
+			utils.show_message("Please give a correct name for config file ! Do not contain '.' or '_' in tag name.")
+			return
+		save_file = os.path.join(self.dirname, self.namespace['project_structure'][3], "config/%s_%s.ini" % (self.namespace['phasing_PJ'], tag_name))
+		# # # # # # # # #
+		params = {}
+		# mask
+		maskfile = str(self.ui.lineEdit_10.text())
+		if maskfile.lower() == "none":
+			maskfile = None
+		elif os.path.isfile(maskfile) and os.path.splitext(maskfile)[-1] not in ['.npy']:
+			utils.show_message("Please choose correct mask file (.npy) !")
+			return
+		elif not os.path.isfile(maskfile):
+			re = utils.show_warning("'User Mask File' is invalid, set to None, continue ?")
+			if re == 1:
+				maskfile = None
+			else:
+				return
+		params["mask"] = maskfile
+		# start model
+		start_model = str(self.ui.lineEdit_11.text())
+		if start_model.lower() == "random":
+			start_model = "Random"
+		elif os.path.isfile(start_model) and os.path.splitext(start_model)[-1] not in ['.npy', '.bin', '.mat']:
+			utils.show_message("Please choose correct initial model (.npy .bin .mat) !")
+			return
+		elif not os.path.isfile(start_model):
+			re = utils.show_warning("'Initial Model' is invalid, set to Random, continue ?")
+			if re == 1:
+				start_model = "Random"
+			else:
+				return
+		# others
+		params['dtype'] = "%d,%s" % (self.ui.comboBox_8.currentIndex(), str(self.ui.comboBox_8.currentText()))
+		params['start_model'] = start_model
+		params['inner_mask'] = self.ui.spinBox_20.value()
+		params['outer_mask'] = self.ui.spinBox_21.value()
+		params['o_o_mask'] = self.ui.spinBox_22.value()
+		params['iter_type_3'] = "%d,%s" % (self.ui.comboBox_11.currentIndex(), str(self.ui.comboBox_11.currentText()))
+		params['iter_type_2'] = "%d,%s" % (self.ui.comboBox_10.currentIndex(), str(self.ui.comboBox_10.currentText()))
+		params['iter_type_1'] = "%d,%s" % (self.ui.comboBox_9.currentIndex(), str(self.ui.comboBox_9.currentText()))
+		params['iter_num_3'] = self.ui.spinBox_25.value()
+		params['iter_num_2'] = self.ui.spinBox_24.value()
+		params['iter_num_1'] = self.ui.spinBox_23.value()
+		params['repeat'] = self.ui.spinBox_27.value()
+		params['support'] = self.ui.spinBox_26.value()
+		params['beta'] = self.ui.doubleSpinBox_14.value()
+
+		# write to file
+		params_write = {}
+		params_write[self.namespace['config_head']] = params
+		utils.write_config(save_file, params_write)
+		utils.show_message("Save successfully !\n(%s)" % save_file)
+		utils.print2projectLog(self.dirname, "Save %s" % save_file)
+
+
+	def phase_project(self):
+		path = os.path.join(self.dirname, self.namespace['project_structure'][3], self.namespace['phasing_PJ'], '*.*.*' )
+		path = ['New Project'] + glob.glob(path)
+		project = [os.path.split(f)[-1] for f in path]
+		ret = [None]
+		chosebox.show_chosebox("Project", project, ret, "Choose Project")
+		if ret[0] is None:
+			return
+		proj_chosen = path[ret[0]]
+		if ret[0] == 0 or not os.path.exists(proj_chosen):
+			self.ui.lineEdit_12.setText("")
+			self.ui.lineEdit_22.setText('New Project')
+			self.ui.lineEdit_12.setReadOnly(False)
+			self.ui.pushButton_18.setEnabled(False)
+		else:
+			self.ui.lineEdit_12.setText(utils.split_jobdir_runviewkey(project[ret[0]])['run_name'])
+			self.ui.lineEdit_22.setText(project[ret[0]])
+			self.ui.lineEdit_12.setReadOnly(True)
+			self.ui.pushButton_18.setEnabled(True)
+
+
+	def run_phase(self):
+		# load jobcenter
+		job_type = self.namespace['project_structure'][3] + '/' + self.namespace['phasing_PJ']
+		run_name = str(self.ui.lineEdit_12.text())
+		if '.' in run_name:
+			utils.show_message("The dot character ('.') is not allowed in Project Name !")
+			return
+		data_file = str(self.ui.lineEdit_9.text())
+		processes = self.ui.spinBox_28.value()
+		# runtime
+		runtime = {'num_proc':processes}
+		if len(run_name) == 0:
+			utils.show_message("Project name should not be blank !")
+			return
+		if not os.path.isfile(data_file):
+			utils.show_message("Please choose data file !")
+			return
+		# notice again
+		re = utils.show_warning("Confirm to submit this job ?", \
+			"Job detail : %s (%s)\nJobs : %d" \
+			% (job_type, run_name, processes))
+		if re == 1:
+			self.JobCenter.TableRun_showoff(job_type, [run_name], {run_name:[data_file]}, runtime)
+			utils.print2projectLog(self.dirname, "Choose %s on %s" % (self.namespace['phasing_PJ'], run_name))
+
+
+	def phase_plot(self):
+		job_info = utils.split_jobdir_runviewkey(str(self.ui.lineEdit_22.text()))		
+		try:
+			jid = self.JobCenter.get_jid(self.namespace['phasing_PJ'], job_info['run_name'], job_info['tag'], job_info['remarks'])
+			savepath = self.JobCenter.jobs[jid].savepath
+			cmd = "cd %s;python show_result.py output.h5" % os.path.join(savepath, job_info['run_name'])
+			re = subprocess.check_call(cmd, shell=True)
+			utils.print2projectLog(self.dirname, "Show result of %s.%s.%s.%s" % \
+				(self.namespace['phasing_PJ'], job_info['run_name'], job_info['tag'], job_info['remarks']))
+		except Exception as err:
+			utils.show_message("Fail to show result !", str(err))
+
+
+
+	'''
+		Simulation Tab
+	'''
+
+	def simu_input_file(self):
+		inputfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .pdb file to open", "", "DATA (*.pdb)"))
+		if not os.path.exists(inputfile):
+			return
+		self.ui.lineEdit_13.setText(inputfile)
+
+
+	def simu_mask_file(self):
+		maskfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .npy file to open", "", "MASK (*.npy)"))
+		if not os.path.exists(maskfile):
+			return
+		self.ui.lineEdit_14.setText(maskfile)
+
+
+	def simu_euler_file(self):
+		eulerfile = str(QtGui.QFileDialog(self).getOpenFileName(None, "Select .txt/.dat/.eul file to open", "", "EULER (*.txt *.dat *.eul)"))
+		if not os.path.exists(eulerfile):
+			return
+		self.ui.lineEdit_24.setText(eulerfile)
+
+
+	def simu_algorithm(self):
+		algo = str(self.ui.comboBox_13.currentText())
+		if algo == self.namespace['simulation_FFT']:
+			self.ui.groupBox_11.setVisible(False)
+		elif algo == self.namespace['simulation_AS']:
+			self.ui.groupBox_11.setVisible(True)
+		else:
+			utils.show_message("I don't know the algorithm you choose : %s." % algo)
+
+
+	def simu_euler_angles(self):
+		eu_type = str(self.ui.comboBox_19.currentText())
+		if eu_type.lower() == "random":
+			self.ui.lineEdit_24.setVisible(False)
+			self.ui.pushButton_32.setVisible(False)
+		elif eu_type.lower() == "predefined":
+			self.ui.lineEdit_24.setVisible(True)
+			self.ui.pushButton_32.setVisible(True)
+		else:
+			utils.show_message("I don't know the euler angles you choose : %s." % eu_type)
+
+
+	def simu_load_config(self):
+		config_file = self.load_module_config(self.namespace['project_structure'][4])
+		if config_file is None:
+			return
+		chead = self.namespace['config_head']
+		assignments = utils.split_config(os.path.split(config_file)[-1])[0]
+		# read config
+		try:
+			config = utils.read_config(config_file)
+			# load
+			self.ui.lineEdit_14.setText(config.get(chead, "mask"))
+			self.ui.comboBox_13.setCurrentIndex(self.namespace['simulation_assignments'].index(assignments))
+			self.ui.doubleSpinBox_10.setValue(config.getfloat(chead, "detd"))
+			self.ui.doubleSpinBox_11.setValue(config.getfloat(chead, "lambda"))
+			self.ui.doubleSpinBox_12.setValue(config.getfloat(chead, "pix_size"))
+			self.ui.spinBox_30.setValue(config.getint(chead, "det_size"))
+			self.ui.doubleSpinBox_13.setValue(config.getfloat(chead, "fluence"))
+			self.ui.spinBox_29.setValue(config.getint(chead, "beam_stop"))
+			if assignments == self.namespace['simulation_AS']:
+				self.ui.comboBox_19.setCurrentIndex(self.ui.comboBox_19.findText(config.get(chead, "euler_type")))
+				self.simu_euler_angles()
+				if str(self.ui.comboBox_19.currentText()) == "predefined":
+					self.ui.lineEdit_24.setText(config.get(chead, "euler_pred_file"))
+				self.ui.comboBox_14.setCurrentIndex(self.ui.comboBox_14.findText(config.get(chead, "rot_order")))
+				self.ui.checkBox_4.setCheckState(config.getint(chead, "poisson"))
+				self.ui.checkBox.setCheckState(config.getint(chead, "scatter_f"))
+				self.ui.checkBox_2.setCheckState(config.getint(chead, "ram_first"))
+			
+			self.ui.lineEdit_20.setText(utils.extract_tag(assignments, config_file)+'-new')
+		except Exception as err:
+			utils.show_message("Error happens while loading config file !", str(err))
+			return
+
+
+	def simu_save_config(self):
+		tag_name = str(self.ui.lineEdit_20.text())
+		assignments = str(self.ui.comboBox_13.currentText())
+		# consistent with process.py
+		if len(tag_name) == 0 or '.' in tag_name or '_' in tag_name:
+			utils.show_message("Please give a correct name for config file ! Do not contain '.' or '_' in tag name.")
+			return
+		save_file = os.path.join(self.dirname, self.namespace['project_structure'][4], "config/%s_%s.ini" % (assignments, tag_name))
+		# # # # # # # # #
+		params = {}
+		# mask
+		maskfile = str(self.ui.lineEdit_14.text())
+		if os.path.isfile(maskfile) and os.path.splitext(maskfile)[-1] not in ['.npy']:
+			utils.show_message("Please choose correct mask file (.npy) !")
+			return
+		elif not os.path.isfile(maskfile):
+			maskfile = None
+		# others
+		if assignments == self.namespace['simulation_AS']:
+			params['euler_type'] = str(self.ui.comboBox_19.currentText())
+			if params['euler_type'].lower() == "predefined":
+				euler_file = str(self.ui.lineEdit_24.text())
+				if not (os.path.isfile(euler_file) and os.path.splitext(euler_file)[-1] in ['.txt', '.dat', '.eul']):
+					utils.show_message("Please choose correct euler angle file (.txt/.dat/.eul) !")
+					return
+				params['euler_pred_file'] = euler_file
+			params['rot_order'] = str(self.ui.comboBox_14.currentText())
+			params['poisson']   = self.ui.checkBox_4.checkState()
+			params['scatter_f'] = self.ui.checkBox.checkState()
+			params['ram_first'] = self.ui.checkBox_2.checkState()
+		params["mask"] = maskfile
+		params['detd'] = self.ui.doubleSpinBox_10.value()
+		params['lambda'] = self.ui.doubleSpinBox_11.value()
+		params['pix_size'] = self.ui.doubleSpinBox_12.value()
+		params['det_size'] = self.ui.spinBox_30.value()
+		params['fluence'] = self.ui.doubleSpinBox_13.value()
+		params['beam_stop'] = self.ui.spinBox_29.value()
+
+		# write to file
+		params_write = {}
+		params_write[self.namespace['config_head']] = params
+		utils.write_config(save_file, params_write)
+		utils.show_message("Save successfully !\n(%s)" % save_file)
+		utils.print2projectLog(self.dirname, "Save %s" % save_file)
+
+
+	def simu_project(self):
+		path = []
+		project = []
+		for assignments in self.namespace['simulation_assignments']:
+			path.append("%s.New Project" % assignments)
+			project.append("%s.New Project" % assignments)
+		for assignments in self.namespace['simulation_assignments']:
+			tmp = os.path.join(self.dirname, self.namespace['project_structure'][4], assignments, '*.*.*' )
+			tmp = glob.glob(tmp)
+			path.extend(tmp)
+			project.extend(assignments+"."+os.path.split(f)[-1] for f in tmp)
+		ret = [None]
+		chosebox.show_chosebox("Project", project, ret, "Choose Project")
+		if ret[0] is None:
+			return
+		proj_chosen = path[ret[0]]
+		if ".New Project" in proj_chosen:
+			#self.ui.lineEdit_15.setText("")
+			self.ui.lineEdit_23.setText(project[ret[0]])
+			self.ui.lineEdit_15.setReadOnly(False)
+			self.ui.pushButton_30.setEnabled(False)
+		elif not os.path.exists(proj_chosen):
+			#self.ui.lineEdit_15.setText("")
+			self.ui.lineEdit_23.setText("")
+			self.ui.lineEdit_15.setReadOnly(False)
+			self.ui.pushButton_30.setEnabled(False)
+		else:
+			self.ui.lineEdit_15.setText(utils.split_jobdir_runviewkey(project[ret[0]])['run_name'])
+			self.ui.lineEdit_23.setText(project[ret[0]])
+			self.ui.lineEdit_15.setReadOnly(True)
+			self.ui.pushButton_30.setEnabled(True)
+
+
+	def run_simu(self):
+		# load jobcenter
+		assignments = str(self.ui.lineEdit_23.text()).split(".")[0]
+		if len(assignments) == 0:
+			utils.show_message("Please choose a simulation project !")
+			return
+		elif assignments == self.namespace['simulation_FFT']:
+			import spipy
+			if len(glob.glob(os.path.join(os.path.dirname(spipy.simulate.__file__), "src", "make_data_*"))) != 1:
+				utils.show_message("[Error] The 'sim' module is not compiled in spipy package ! Exit.")
+				return
+		run_name = str(self.ui.lineEdit_15.text())
+		if '.' in run_name:
+			utils.show_message("The dot character ('.') is not allowed in Project Name !")
+			return
+		job_type = self.namespace['project_structure'][4] + '/' + assignments
+		pdb_file = str(self.ui.lineEdit_13.text())
+		processes = self.ui.spinBox_33.value()
+		num_pat = self.ui.spinBox_32.value()
+		# runtime
+		runtime = {'num_proc':processes, 'num_pattern':num_pat}
+		if len(run_name) == 0:
+			utils.show_message("Project name should not be blank !")
+			return
+		if not os.path.isfile(pdb_file):
+			utils.show_message("Please choose PDB file !")
+			return
+		# notice again
+		re = utils.show_warning("Confirm to submit this job ?", \
+			"Job detail : %s (%s)\nJobs : %d\nPatterns : %d" \
+			% (job_type, run_name, processes, num_pat))
+		if re == 1:
+			self.JobCenter.TableRun_showoff(job_type, [run_name], {run_name:[pdb_file]}, runtime)
+			utils.print2projectLog(self.dirname, "Choose %s on %s" % (assignments, run_name))
+
+
+	def simu_plot(self):
+		# open data viewer if it is closed
+		if not data_viewer.is_shown():
+			data_viewer.show_data_viewer(self)
+		# load data
+		job_info = utils.split_jobdir_runviewkey(str(self.ui.lineEdit_23.text()))		
+		try:
+			jid = self.JobCenter.get_jid(job_info['assignments'], job_info['run_name'], job_info['tag'], job_info['remarks'])
+			savepath = self.JobCenter.jobs[jid].savepath
+			tmp = glob.glob(os.path.join(savepath, "spipy_*_simulation*.h5"))
+			data_viewer.add_files(tmp)
+			utils.print2projectLog(self.dirname, "Add %s results of %s to data viewer." \
+									% (job_info['assignments'], job_info['run_name']))
+		except Exception as err:
+			utils.show_message("Fail to show result !", str(err))
 
 
 if __name__ == "__main__":

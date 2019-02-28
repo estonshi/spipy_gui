@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1240</width>
-    <height>814</height>
+    <height>827</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -229,7 +229,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>1112</width>
-                       <height>554</height>
+                       <height>567</height>
                       </rect>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -426,124 +426,6 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_3">
                <item>
-                <widget class="QWidget" name="widget_7" native="true">
-                 <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,1,0">
-                  <item>
-                   <widget class="QWidget" name="widget_4" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_6">
-                     <item>
-                      <widget class="QLabel" name="label_2">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="mouseTracking">
-                        <bool>true</bool>
-                       </property>
-                       <property name="toolTip">
-                        <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;All H5 and CXI file are selected as data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                       <property name="statusTip">
-                        <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
-                       </property>
-                       <property name="whatsThis">
-                        <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
-                       </property>
-                       <property name="text">
-                        <string>Data Directory</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="lineEdit">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>1</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="pushButton_4">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="text">
-                        <string>Browser</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="widget_33" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_29">
-                     <item>
-                      <widget class="QLabel" name="label_28">
-                       <property name="text">
-                        <string>Mask File</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="lineEdit_5"/>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="pushButton_9">
-                       <property name="text">
-                        <string>Browser</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QWidget" name="widget_6" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_7">
-                     <item>
-                      <widget class="QLabel" name="label_3">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="toolTip">
-                        <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
-                       </property>
-                       <property name="text">
-                        <string>Data inside H5</string>
-                       </property>
-                       <property name="alignment">
-                        <set>Qt::AlignCenter</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="lineEdit_2">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                         <horstretch>1</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
                 <widget class="QWidget" name="widget_5" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -551,7 +433,7 @@
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="1,1,0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_73">
                   <item>
                    <widget class="QGroupBox" name="groupBox">
                     <property name="font">
@@ -576,7 +458,7 @@
                         <item>
                          <widget class="QDoubleSpinBox" name="doubleSpinBox">
                           <property name="decimals">
-                           <number>1</number>
+                           <number>2</number>
                           </property>
                           <property name="maximum">
                            <double>1.000000000000000</double>
@@ -666,6 +548,9 @@
                           <property name="minimum">
                            <number>1</number>
                           </property>
+                          <property name="maximum">
+                           <number>1024</number>
+                          </property>
                          </widget>
                         </item>
                        </layout>
@@ -752,7 +637,7 @@
                         <item>
                          <widget class="QLabel" name="label_74">
                           <property name="text">
-                           <string>Job name</string>
+                           <string>Tag Name</string>
                           </property>
                          </widget>
                         </item>
@@ -760,16 +645,9 @@
                          <widget class="QLineEdit" name="lineEdit_16"/>
                         </item>
                         <item>
-                         <widget class="QPushButton" name="pushButton_5">
-                          <property name="cursor">
-                           <cursorShape>PointingHandCursor</cursorShape>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">background-color: rgb(128, 128, 255);
-color: rgb(255, 255, 255);</string>
-                          </property>
+                         <widget class="QPushButton" name="pushButton_33">
                           <property name="text">
-                           <string>Run</string>
+                           <string>Save as Config</string>
                           </property>
                          </widget>
                         </item>
@@ -893,6 +771,9 @@ color: rgb(255, 255, 255);</string>
                        <layout class="QHBoxLayout" name="horizontalLayout_21">
                         <item>
                          <widget class="QLabel" name="label_16">
+                          <property name="toolTip">
+                           <string>the speed vs accuracy trade-off parameter, theta=1 means highest speed with lowest accuracy</string>
+                          </property>
                           <property name="text">
                            <string>theta</string>
                           </property>
@@ -945,6 +826,12 @@ color: rgb(255, 255, 255);</string>
                        <layout class="QHBoxLayout" name="horizontalLayout_22">
                         <item>
                          <widget class="QLabel" name="label_18">
+                          <property name="toolTip">
+                           <string/>
+                          </property>
+                          <property name="whatsThis">
+                           <string>pattern number of each group in decomposition</string>
+                          </property>
                           <property name="text">
                            <string>Group size</string>
                           </property>
@@ -966,7 +853,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QLabel" name="label_19">
                           <property name="text">
-                           <string>Number of Jobs</string>
+                           <string>Threads            </string>
                           </property>
                          </widget>
                         </item>
@@ -986,7 +873,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QLabel" name="label_75">
                           <property name="text">
-                           <string>Job name</string>
+                           <string>Tag Name</string>
                           </property>
                          </widget>
                         </item>
@@ -994,25 +881,9 @@ color: rgb(255, 255, 255);</string>
                          <widget class="QLineEdit" name="lineEdit_17"/>
                         </item>
                         <item>
-                         <widget class="QPushButton" name="pushButton_7">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="cursor">
-                           <cursorShape>PointingHandCursor</cursorShape>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">background-color: rgb(128, 128, 255);
-color: rgb(255, 255, 255);</string>
-                          </property>
+                         <widget class="QPushButton" name="pushButton_5">
                           <property name="text">
-                           <string>Run</string>
-                          </property>
-                          <property name="autoDefault">
-                           <bool>false</bool>
+                           <string>Save as Config</string>
                           </property>
                          </widget>
                         </item>
@@ -1030,20 +901,206 @@ color: rgb(255, 255, 255);</string>
                    </widget>
                   </item>
                   <item>
-                   <spacer name="horizontalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
+                   <widget class="QGroupBox" name="groupBox_13">
+                    <property name="font">
+                     <font>
+                      <pointsize>14</pointsize>
+                     </font>
                     </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Expanding</enum>
+                    <property name="title">
+                     <string>RunTime</string>
                     </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>295</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
+                    <layout class="QVBoxLayout" name="verticalLayout_35">
+                     <item>
+                      <widget class="QWidget" name="widget_4" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_6">
+                        <item>
+                         <widget class="QLabel" name="label_2">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="mouseTracking">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolTip">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;All H5 and CXI file are selected as data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="statusTip">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
+                          </property>
+                          <property name="whatsThis">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
+                          </property>
+                          <property name="text">
+                           <string>Data File</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEdit">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>1</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_4">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Browser</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_6" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_7">
+                        <item>
+                         <widget class="QLabel" name="label_3">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="toolTip">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
+                          </property>
+                          <property name="text">
+                           <string>Data inside H5</string>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEdit_2">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>1</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_87" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_9">
+                        <item>
+                         <widget class="QLabel" name="label_28">
+                          <property name="toolTip">
+                           <string>set 'None' to ignore</string>
+                          </property>
+                          <property name="text">
+                           <string>Mask File</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEdit_5">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>None</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_9">
+                          <property name="text">
+                           <string>Browser</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_88" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_74">
+                        <item>
+                         <widget class="QPushButton" name="pushButton_7">
+                          <property name="text">
+                           <string>Test Run</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_34">
+                          <property name="styleSheet">
+                           <string notr="true">background-color: rgba(90, 40, 150, 128);
+color: rgb(255, 255, 255);</string>
+                          </property>
+                          <property name="text">
+                           <string>Run</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="verticalSpacer_4">
+                       <property name="orientation">
+                        <enum>Qt::Vertical</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>20</width>
+                         <height>221</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_7" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_8">
+                        <item>
+                         <spacer name="horizontalSpacer_3">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>168</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_35">
+                          <property name="text">
+                           <string>Plot Result</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -1122,6 +1179,9 @@ color: rgb(255, 255, 255);</string>
                          <verstretch>0</verstretch>
                         </sizepolicy>
                        </property>
+                       <property name="readOnly">
+                        <bool>true</bool>
+                       </property>
                       </widget>
                      </item>
                      <item>
@@ -1131,6 +1191,9 @@ color: rgb(255, 255, 255);</string>
                          <horstretch>0</horstretch>
                          <verstretch>0</verstretch>
                         </sizepolicy>
+                       </property>
+                       <property name="toolTip">
+                        <string extracomment=".h5 data file"/>
                        </property>
                        <property name="text">
                         <string>Browser</string>
@@ -1154,10 +1217,20 @@ color: rgb(255, 255, 255);</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="lineEdit_6"/>
+                      <widget class="QLineEdit" name="lineEdit_6">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                       <property name="readOnly">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item>
                       <widget class="QPushButton" name="pushButton_10">
+                       <property name="toolTip">
+                        <string extracomment=".npy mask file"/>
+                       </property>
                        <property name="text">
                         <string>Browser</string>
                        </property>
@@ -1610,12 +1683,12 @@ color: rgb(255, 255, 255);</string>
                           </item>
                           <item>
                            <property name="text">
-                            <string>Odd-Only</string>
+                            <string>odd_only</string>
                            </property>
                           </item>
                           <item>
                            <property name="text">
-                            <string>Even-Only</string>
+                            <string>even_only</string>
                            </property>
                           </item>
                          </widget>
@@ -1634,6 +1707,9 @@ color: rgb(255, 255, 255);</string>
                         </property>
                         <item>
                          <widget class="QLabel" name="label_36">
+                          <property name="toolTip">
+                           <string>.bin .byt file</string>
+                          </property>
                           <property name="text">
                            <string>Start Model</string>
                           </property>
@@ -1655,7 +1731,14 @@ color: rgb(255, 255, 255);</string>
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="QLineEdit" name="lineEdit_7"/>
+                            <widget class="QLineEdit" name="lineEdit_7">
+                             <property name="text">
+                              <string>Random</string>
+                             </property>
+                             <property name="readOnly">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
                            </item>
                            <item>
                             <widget class="QPushButton" name="pushButton_11">
@@ -1664,6 +1747,9 @@ color: rgb(255, 255, 255);</string>
                                <horstretch>0</horstretch>
                                <verstretch>0</verstretch>
                               </sizepolicy>
+                             </property>
+                             <property name="toolTip">
+                              <string extracomment=".bin binary file (for 'fopen' in C)"/>
                              </property>
                              <property name="text">
                               <string>Browser</string>
@@ -1685,24 +1771,14 @@ color: rgb(255, 255, 255);</string>
                      <item>
                       <widget class="QLabel" name="label_76">
                        <property name="text">
-                        <string>Load Parameters</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="comboBox_17">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
+                        <string>Load config file</string>
                        </property>
                       </widget>
                      </item>
                      <item>
                       <widget class="QPushButton" name="pushButton_22">
                        <property name="text">
-                        <string>Load</string>
+                        <string>Choose to Load</string>
                        </property>
                       </widget>
                      </item>
@@ -1722,7 +1798,7 @@ color: rgb(255, 255, 255);</string>
                      <item>
                       <widget class="QLabel" name="label_77">
                        <property name="text">
-                        <string>Configuration Tag</string>
+                        <string>Give a Name</string>
                        </property>
                       </widget>
                      </item>
@@ -1744,6 +1820,13 @@ color: rgb(255, 255, 255);</string>
                       </widget>
                      </item>
                     </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
                    </widget>
                   </item>
                   <item>
@@ -1771,7 +1854,7 @@ color: rgb(255, 255, 255);</string>
                      </property>
                      <item>
                       <widget class="QWidget" name="widget_44" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_36">
+                       <layout class="QHBoxLayout" name="horizontalLayout_36" stretch="1,0,0,1">
                         <property name="topMargin">
                          <number>0</number>
                         </property>
@@ -1789,12 +1872,20 @@ color: rgb(255, 255, 255);</string>
                             </widget>
                            </item>
                            <item>
-                            <widget class="QComboBox" name="comboBox_7">
-                             <item>
-                              <property name="text">
-                               <string>New Project</string>
-                              </property>
-                             </item>
+                            <widget class="QLineEdit" name="lineEdit_21">
+                             <property name="text">
+                              <string>New Project</string>
+                             </property>
+                             <property name="readOnly">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QPushButton" name="pushButton_28">
+                             <property name="text">
+                              <string>Choose</string>
+                             </property>
                             </widget>
                            </item>
                           </layout>
@@ -1813,7 +1904,7 @@ color: rgb(255, 255, 255);</string>
                            <item>
                             <widget class="QLineEdit" name="lineEdit_8">
                              <property name="text">
-                              <string>AUTO</string>
+                              <string/>
                              </property>
                             </widget>
                            </item>
@@ -1823,7 +1914,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QRadioButton" name="radioButton">
                           <property name="enabled">
-                           <bool>true</bool>
+                           <bool>false</bool>
                           </property>
                           <property name="text">
                            <string>Resume from last iteration</string>
@@ -1832,7 +1923,7 @@ color: rgb(255, 255, 255);</string>
                            <bool>true</bool>
                           </property>
                           <property name="checked">
-                           <bool>false</bool>
+                           <bool>true</bool>
                           </property>
                          </widget>
                         </item>
@@ -1985,6 +2076,12 @@ color: rgb(255, 255, 255);</string>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_12">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
                           <property name="cursor">
                            <cursorShape>PointingHandCursor</cursorShape>
                           </property>
@@ -2107,67 +2204,8 @@ color: rgb(255, 255, 255);</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QWidget" name="widget_53" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_43" stretch="0,1,0">
-                        <item>
-                         <widget class="QLabel" name="label_43">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="font">
-                           <font>
-                            <pointsize>14</pointsize>
-                           </font>
-                          </property>
-                          <property name="mouseTracking">
-                           <bool>true</bool>
-                          </property>
-                          <property name="toolTip">
-                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Support &amp;quot;.npy&amp;quot; &amp;amp; &amp;quot;.bin&amp;quot; files&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                          </property>
-                          <property name="statusTip">
-                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
-                          </property>
-                          <property name="whatsThis">
-                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
-                          </property>
-                          <property name="text">
-                           <string>Data File</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLineEdit" name="lineEdit_9">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                            <horstretch>1</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_14">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="text">
-                           <string>Browser</string>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
                       <widget class="QWidget" name="widget_54" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_44" stretch="0,1,0">
+                       <layout class="QHBoxLayout" name="horizontalLayout_44" stretch="0,0,0,0">
                         <item>
                          <widget class="QLabel" name="label_44">
                           <property name="font">
@@ -2176,7 +2214,7 @@ color: rgb(255, 255, 255);</string>
                            </font>
                           </property>
                           <property name="toolTip">
-                           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;support &amp;quot;.npy&amp;quot; &amp;amp; binary file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           <string extracomment="only .npy file">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;support &amp;quot;.npy&amp;quot; &amp;amp; binary file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
                            <string>User Mask File</string>
@@ -2184,7 +2222,14 @@ color: rgb(255, 255, 255);</string>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLineEdit" name="lineEdit_10"/>
+                         <widget class="QLineEdit" name="lineEdit_10">
+                          <property name="text">
+                           <string>None</string>
+                          </property>
+                          <property name="readOnly">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_15">
@@ -2192,6 +2237,19 @@ color: rgb(255, 255, 255);</string>
                            <string>Browser</string>
                           </property>
                          </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_25">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
                         </item>
                        </layout>
                       </widget>
@@ -2229,7 +2287,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QSpinBox" name="spinBox_20">
                           <property name="maximum">
-                           <number>1024</number>
+                           <number>8192</number>
                           </property>
                          </widget>
                         </item>
@@ -2257,7 +2315,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QSpinBox" name="spinBox_21">
                           <property name="maximum">
-                           <number>1024</number>
+                           <number>8192</number>
                           </property>
                          </widget>
                         </item>
@@ -2285,7 +2343,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QSpinBox" name="spinBox_22">
                           <property name="maximum">
-                           <number>1024</number>
+                           <number>8192</number>
                           </property>
                          </widget>
                         </item>
@@ -2311,7 +2369,14 @@ color: rgb(255, 255, 255);</string>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLineEdit" name="lineEdit_11"/>
+                         <widget class="QLineEdit" name="lineEdit_11">
+                          <property name="text">
+                           <string>Random</string>
+                          </property>
+                          <property name="readOnly">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_16">
@@ -2349,6 +2414,9 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QWidget" name="widget_61" native="true">
                     <layout class="QHBoxLayout" name="horizontalLayout_54" stretch="0,1,0,0">
+                     <property name="bottomMargin">
+                      <number>1</number>
+                     </property>
                      <item>
                       <widget class="QWidget" name="widget_62" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_51">
@@ -2378,7 +2446,7 @@ color: rgb(255, 255, 255);</string>
                            <number>0</number>
                           </property>
                           <property name="maximum">
-                           <number>500</number>
+                           <number>2000</number>
                           </property>
                           <property name="value">
                            <number>100</number>
@@ -2394,7 +2462,7 @@ color: rgb(255, 255, 255);</string>
                            <number>0</number>
                           </property>
                           <property name="maximum">
-                           <number>500</number>
+                           <number>2000</number>
                           </property>
                           <property name="value">
                            <number>100</number>
@@ -2410,7 +2478,7 @@ color: rgb(255, 255, 255);</string>
                            <number>0</number>
                           </property>
                           <property name="maximum">
-                           <number>500</number>
+                           <number>2000</number>
                           </property>
                           <property name="value">
                            <number>200</number>
@@ -2448,8 +2516,11 @@ color: rgb(255, 255, 255);</string>
                             <bold>true</bold>
                            </font>
                           </property>
+                          <property name="toolTip">
+                           <string>independent phasing repeats for every job</string>
+                          </property>
                           <property name="text">
-                           <string>Repeat</string>
+                           <string>Repeat / job</string>
                           </property>
                           <property name="alignment">
                            <set>Qt::AlignCenter</set>
@@ -2465,7 +2536,7 @@ color: rgb(255, 255, 255);</string>
                            <number>100</number>
                           </property>
                           <property name="value">
-                           <number>20</number>
+                           <number>2</number>
                           </property>
                          </widget>
                         </item>
@@ -2511,7 +2582,48 @@ color: rgb(255, 255, 255);</string>
                   </item>
                   <item>
                    <widget class="QWidget" name="widget_70" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_60">
+                    <layout class="QHBoxLayout" name="horizontalLayout_71">
+                     <property name="topMargin">
+                      <number>1</number>
+                     </property>
+                     <item>
+                      <widget class="QWidget" name="widget_85" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_60">
+                        <item>
+                         <widget class="QLabel" name="label_64">
+                          <property name="font">
+                           <font>
+                            <weight>75</weight>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Beta</string>
+                          </property>
+                          <property name="scaledContents">
+                           <bool>false</bool>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignCenter</set>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QDoubleSpinBox" name="doubleSpinBox_14">
+                          <property name="maximum">
+                           <double>1.000000000000000</double>
+                          </property>
+                          <property name="singleStep">
+                           <double>0.100000000000000</double>
+                          </property>
+                          <property name="value">
+                           <double>0.800000000000000</double>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
                      <item>
                       <spacer name="horizontalSpacer_10">
                        <property name="orientation">
@@ -2519,25 +2631,11 @@ color: rgb(255, 255, 255);</string>
                        </property>
                        <property name="sizeHint" stdset="0">
                         <size>
-                         <width>889</width>
+                         <width>40</width>
                          <height>20</height>
                         </size>
                        </property>
                       </spacer>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="label_64">
-                       <property name="text">
-                        <string>Other Settings</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QToolButton" name="toolButton">
-                       <property name="text">
-                        <string>...</string>
-                       </property>
-                      </widget>
                      </item>
                     </layout>
                    </widget>
@@ -2551,17 +2649,14 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QLabel" name="label_78">
                     <property name="text">
-                     <string>Load Parameters</string>
+                     <string>Load Config File</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="comboBox_18"/>
-                  </item>
-                  <item>
                    <widget class="QPushButton" name="pushButton_24">
                     <property name="text">
-                     <string>Load</string>
+                     <string>Choose to Load</string>
                     </property>
                    </widget>
                   </item>
@@ -2581,7 +2676,7 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QLabel" name="label_79">
                     <property name="text">
-                     <string>Configuration Tag</string>
+                     <string>Give a Name</string>
                     </property>
                    </widget>
                   </item>
@@ -2603,6 +2698,13 @@ color: rgb(255, 255, 255);</string>
                    </widget>
                   </item>
                  </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_3">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -2630,7 +2732,7 @@ color: rgb(255, 255, 255);</string>
                   </property>
                   <item>
                    <widget class="QWidget" name="widget_65" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_55">
+                    <layout class="QHBoxLayout" name="horizontalLayout_55" stretch="1,0,1">
                      <property name="topMargin">
                       <number>0</number>
                      </property>
@@ -2648,12 +2750,26 @@ color: rgb(255, 255, 255);</string>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QComboBox" name="comboBox_12">
-                          <item>
-                           <property name="text">
-                            <string>New Project</string>
-                           </property>
-                          </item>
+                         <widget class="QLineEdit" name="lineEdit_22">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>New Project</string>
+                          </property>
+                          <property name="readOnly">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_29">
+                          <property name="text">
+                           <string>Choose</string>
+                          </property>
                          </widget>
                         </item>
                        </layout>
@@ -2672,7 +2788,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QLineEdit" name="lineEdit_12">
                           <property name="text">
-                           <string>AUTO</string>
+                           <string/>
                           </property>
                          </widget>
                         </item>
@@ -2697,7 +2813,7 @@ color: rgb(255, 255, 255);</string>
                   </item>
                   <item>
                    <widget class="QWidget" name="widget_68" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_58" stretch="0,1">
+                    <layout class="QHBoxLayout" name="horizontalLayout_58" stretch="0,1,1">
                      <property name="topMargin">
                       <number>0</number>
                      </property>
@@ -2710,7 +2826,7 @@ color: rgb(255, 255, 255);</string>
                         <item>
                          <widget class="QLabel" name="label_54">
                           <property name="text">
-                           <string>Processes </string>
+                           <string>Number of Jobs</string>
                           </property>
                          </widget>
                         </item>
@@ -2723,6 +2839,77 @@ color: rgb(255, 255, 255);</string>
                           </property>
                           <property name="minimum">
                            <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>512</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_53" native="true">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <layout class="QHBoxLayout" name="horizontalLayout_43" stretch="0,1,0">
+                        <item>
+                         <widget class="QLabel" name="label_43">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="font">
+                           <font>
+                            <pointsize>14</pointsize>
+                           </font>
+                          </property>
+                          <property name="mouseTracking">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolTip">
+                           <string extracomment=".npy .mat .bin">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Support &amp;quot;.npy&amp;quot; &amp;amp; &amp;quot;.bin&amp;quot; files&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                          </property>
+                          <property name="statusTip">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
+                          </property>
+                          <property name="whatsThis">
+                           <string extracomment="All H5 and CXI files are selected as data file, and &quot;mask.npy&quot; is mask file"/>
+                          </property>
+                          <property name="text">
+                           <string>Data File</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="lineEdit_9">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                            <horstretch>1</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="readOnly">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_14">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Browser</string>
                           </property>
                          </widget>
                         </item>
@@ -2819,10 +3006,10 @@ color: rgb(255, 255, 255);</string>
            <attribute name="title">
             <string>Simulation</string>
            </attribute>
-           <layout class="QVBoxLayout" name="verticalLayout_33">
+           <layout class="QVBoxLayout" name="verticalLayout_29">
             <item>
              <widget class="QWidget" name="widget_78" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_27">
+              <layout class="QVBoxLayout" name="verticalLayout_33">
                <item>
                 <widget class="QGroupBox" name="groupBox_9">
                  <property name="font">
@@ -2867,15 +3054,19 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QLabel" name="label_56">
                     <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If empty, default work path will be used&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                     <string>mask added to patterns, '.npy' format</string>
                     </property>
                     <property name="text">
-                     <string>Predefined Euler angles</string>
+                     <string>Mask File</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="lineEdit_14"/>
+                   <widget class="QLineEdit" name="lineEdit_14">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                   </widget>
                   </item>
                   <item>
                    <widget class="QPushButton" name="pushButton_20">
@@ -2915,18 +3106,7 @@ color: rgb(255, 255, 255);</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QComboBox" name="comboBox_13">
-                       <item>
-                        <property name="text">
-                         <string>atom scattering</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Fourier transform</string>
-                        </property>
-                       </item>
-                      </widget>
+                      <widget class="QComboBox" name="comboBox_13"/>
                      </item>
                      <item>
                       <spacer name="horizontalSpacer_12">
@@ -3032,24 +3212,17 @@ color: rgb(255, 255, 255);</string>
                   </item>
                   <item>
                    <widget class="QWidget" name="widget_73" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_64" stretch="0,0,0,1,0,0,1,0,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_64" stretch="0,0,1,0,0,1,0,0">
                      <item>
                       <widget class="QLabel" name="label_62">
+                       <property name="toolTip">
+                        <string>Only support square detector</string>
+                       </property>
                        <property name="text">
-                        <string>Detector Size in X &amp; Y (pixel)</string>
+                        <string>Detector Size in pixel</string>
                        </property>
                        <property name="margin">
                         <number>0</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QSpinBox" name="spinBox_31">
-                       <property name="maximum">
-                        <number>1024</number>
-                       </property>
-                       <property name="value">
-                        <number>128</number>
                        </property>
                       </widget>
                      </item>
@@ -3125,7 +3298,7 @@ color: rgb(255, 255, 255);</string>
                      <item>
                       <widget class="QSpinBox" name="spinBox_29">
                        <property name="maximum">
-                        <number>512</number>
+                        <number>1024</number>
                        </property>
                       </widget>
                      </item>
@@ -3157,7 +3330,7 @@ color: rgb(255, 255, 255);</string>
                   </property>
                   <item>
                    <widget class="QWidget" name="widget_74" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_65" stretch="0,0,0,0,1,0,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_65" stretch="0,0,0,0,0,0,1,0,0,0">
                      <item>
                       <widget class="QLabel" name="label_65">
                        <property name="text">
@@ -3177,6 +3350,16 @@ color: rgb(255, 255, 255);</string>
                          <string>predefined</string>
                         </property>
                        </item>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_24"/>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_32">
+                       <property name="text">
+                        <string>Load Euler angles</string>
+                       </property>
                       </widget>
                      </item>
                      <item>
@@ -3222,6 +3405,16 @@ color: rgb(255, 255, 255);</string>
                       </spacer>
                      </item>
                      <item>
+                      <widget class="QCheckBox" name="checkBox_4">
+                       <property name="text">
+                        <string>Poisson noise</string>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
                       <widget class="QCheckBox" name="checkBox">
                        <property name="text">
                         <string>Scatter Factor</string>
@@ -3250,17 +3443,14 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QLabel" name="label_66">
                     <property name="text">
-                     <string>Load Parameters</string>
+                     <string>Load Config File</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="comboBox_15"/>
-                  </item>
-                  <item>
                    <widget class="QPushButton" name="pushButton_26">
                     <property name="text">
-                     <string>Load</string>
+                     <string>Choose to Load</string>
                     </property>
                    </widget>
                   </item>
@@ -3280,7 +3470,7 @@ color: rgb(255, 255, 255);</string>
                   <item>
                    <widget class="QLabel" name="label_67">
                     <property name="text">
-                     <string>Configuration Tag</string>
+                     <string>Give a Name</string>
                     </property>
                    </widget>
                   </item>
@@ -3321,18 +3511,78 @@ color: rgb(255, 255, 255);</string>
                  <property name="title">
                   <string>Runtime</string>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_29">
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>12</number>
-                  </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_27">
                   <item>
                    <widget class="QWidget" name="widget_75" native="true">
-                    <layout class="QHBoxLayout" name="horizontalLayout_66" stretch="0,0,0,0,0,0,1,0">
+                    <layout class="QHBoxLayout" name="horizontalLayout_66" stretch="0,1,0,0,0,1">
+                     <item>
+                      <widget class="QLabel" name="label_80">
+                       <property name="text">
+                        <string>Simulation Projects</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_23">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="readOnly">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_31">
+                       <property name="text">
+                        <string>Choose</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_70">
+                       <property name="text">
+                        <string>Project Name</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_15">
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_21">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>455</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="widget_86" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_72">
                      <item>
                       <widget class="QLabel" name="label_69">
+                       <property name="toolTip">
+                        <string>If euler angles are predefined, this parameter will be ignored</string>
+                       </property>
                        <property name="text">
                         <string>Number of Patterns</string>
                        </property>
@@ -3349,21 +3599,10 @@ color: rgb(255, 255, 255);</string>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLabel" name="label_70">
-                       <property name="text">
-                        <string>Project Name</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLineEdit" name="lineEdit_15">
-                       <property name="text">
-                        <string>AUTO</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <widget class="QLabel" name="label_72">
+                       <property name="toolTip">
+                        <string>FFT algorithm doesn't support multi-processing</string>
+                       </property>
                        <property name="text">
                         <string>Jobs</string>
                        </property>
@@ -3374,16 +3613,19 @@ color: rgb(255, 255, 255);</string>
                        <property name="minimum">
                         <number>1</number>
                        </property>
+                       <property name="maximum">
+                        <number>200</number>
+                       </property>
                       </widget>
                      </item>
                      <item>
-                      <spacer name="horizontalSpacer_21">
+                      <spacer name="horizontalSpacer_24">
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
                        </property>
                        <property name="sizeHint" stdset="0">
                         <size>
-                         <width>455</width>
+                         <width>552</width>
                          <height>20</height>
                         </size>
                        </property>
@@ -3403,6 +3645,13 @@ color: rgb(255, 255, 255);</string>
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_30">
+                       <property name="text">
+                        <string>Show Result</string>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -3417,7 +3666,7 @@ color: rgb(255, 255, 255);</string>
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>585</height>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>

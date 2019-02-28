@@ -1,7 +1,6 @@
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4 import QtWebKit
-from start_gui import Ui_StartWindow
 
 import sys
 import os
@@ -12,6 +11,7 @@ import shutil
 from ConfigParser import ConfigParser
 
 import utils
+from start_gui import Ui_StartWindow
 from main_app import SPIPY_MAIN
 
 
@@ -19,6 +19,12 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 
 	def __init__(self, parent=None):
 		QtGui.QWidget.__init__(self, parent)
+		# find spipy
+		try:
+			import spipy
+		except:
+			utils.show_message("I cannot find spipy package in your Python !")
+			return
 		# setup ui
 		self.ui = Ui_StartWindow()
 		self.ui.setupUi(self)
@@ -116,6 +122,12 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 				utils.show_message("NO PBS detected !")
 				return False
 			self.jss = "PBS"
+		elif str(self.ui.comboBox.currentText()).strip()[:3] == "LSF":
+			# check if LSF is working
+			if not utils.check_LSF():
+				utils.show_message("NO LSF detected !")
+				return False
+			self.jss = "LSF"
 		else:
 			utils.show_message("I can not recognize the job submitting system")
 			return False
@@ -219,8 +231,8 @@ class SPIPY_START(QtGui.QMainWindow, QtCore.QEvent):
 			path2 = os.path.join(path, "config")
 			if not os.path.exists(path2):
 				os.mkdir(path2)
-			if n == self.namespace['project_structure'][0]:
-				for m in self.namespace['process_assignments']:
+			if self.namespace.has_key('%s_assignments' % n.lower()):
+				for m in self.namespace['%s_assignments' % n.lower()]:
 					path2 = os.path.join(path, m)
 					if not os.path.exists(path2):
 						os.mkdir(path2)

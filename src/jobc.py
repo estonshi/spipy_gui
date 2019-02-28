@@ -77,8 +77,8 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 		self.python_scripts = utils.get_scripts()
 		# submit queue
 		self.submit_queue = None
-		# tag_remarks_buffer
-		self.tag_remarks_buffer = None
+		# given runtime
+		self.given_runtime = None
 
 		self.jss = jss
 		self.rootdir = project_root
@@ -135,7 +135,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 
 	def reverseForceOverwrite(self):
 		self.force_overwrite = not self.force_overwrite
-		utils.print2projectLog(self.rootdir, "Set project force overwrite to %s" % str(force_overwrite))
+		utils.print2projectLog(self.rootdir, "Set project force overwrite to %s" % str(self.force_overwrite))
 
 
 	def get_config_path(self, module, assignments, tagname=None):
@@ -273,7 +273,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 	"""
 
 
-	def TableRun_showoff(self, job_type, run_names, datafile, tag_remarks):
+	def TableRun_showoff(self, job_type, run_names, datafile, runtime=None):
 		# only 'Process' module needs to call this function
 		# job_type:
 		#	(e.g.) Process/Hit-Finding
@@ -281,8 +281,8 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 		#	(e.g.) ['r0001', 'r0002', ...]
 		# datafile:
 		# 	(e.g.) {'r0001':['.../r0001-1.h5', '.../r0001-2.h5', ...], ...}
-		# tag_remarks:
-		#	(e.g.) {'r0001':['tag1, 'remark1'], 'r0002':['tag2, 'remark2'], ...}
+		# runtime:
+		#	(e.g.) {'param1':value1, 'param2':value2, ...}
 
 		module, assg = job_type.split('/')
 		# add param tag
@@ -326,9 +326,9 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 			# push in job_queue['waiting']
 			self.job_queue['waiting'].put(jid)
 	
-		# update tag_remarks_buffer
-		del self.tag_remarks_buffer
-		self.tag_remarks_buffer = tag_remarks
+		# update runtime
+		if runtime is not None:
+			self.given_runtime = runtime
 
 		# show modal
 		self.setWindowTitle("%s.%s" % (module, assg))
@@ -412,24 +412,26 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 
 
 	def config_change(self):
-		current_tag = str(self.ui.comboBox.currentText())
-		if current_tag == "darkcal.ini":
-			if self.data_format.lower() in ['cxi', 'h5']:
+		title = str(self.windowTitle())
+		if self.namespace['process_HF'] in title:
+			current_tag = str(self.ui.comboBox.currentText())
+			if current_tag == "darkcal.ini":
+				if self.data_format.lower() in ['cxi', 'h5']:
+					self.ui.widget_4.setVisible(True)
+					self.ui.label_3.setText("Data loc in H5/cxi")
+					self.ui.lineEdit_2.setText(self.darkcal_inh5)
+					self.ui.pushButton.setVisible(False)
+				else:
+					self.ui.widget_4.setVisible(False)
+			else:
+				darkcal_file = os.path.join(self.rootdir, self.namespace['project_structure'][0], self.namespace['process_HF'], self.namespace['darkcal'])
 				self.ui.widget_4.setVisible(True)
-				self.ui.label_3.setText("Data loc in H5/cxi")
-				self.ui.lineEdit_2.setText(self.darkcal_inh5)
-				self.ui.pushButton.setVisible(False)
-			else:
-				self.ui.widget_4.setVisible(False)
-		else:
-			darkcal_file = os.path.join(self.rootdir, self.namespace['project_structure'][0], self.namespace['process_HF'], self.namespace['darkcal'])
-			self.ui.widget_4.setVisible(True)
-			self.ui.label_3.setText("Darkcal (h5)      ")
-			if os.path.exists(darkcal_file):
-				self.ui.lineEdit_2.setText(darkcal_file)
-			else:
-				self.ui.lineEdit_2.setText("None")
-			self.ui.pushButton.setVisible(True)
+				self.ui.label_3.setText("Darkcal (h5)      ")
+				if os.path.exists(darkcal_file):
+					self.ui.lineEdit_2.setText(darkcal_file)
+				else:
+					self.ui.lineEdit_2.setText("None")
+				self.ui.pushButton.setVisible(True)
 
 
 	def cancel(self):
@@ -477,7 +479,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 								for line in fp.readlines():
 									if "traceback" in line.lower():
 										return JobCenter.ERR
-									elif "terminated" in line.lower():
+									elif "terminated" in line.lower() or "killed" in line.lower():
 										return JobCenter.TER
 							return JobCenter.TER
 			else:
@@ -555,7 +557,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 
 
 	'''
-		This is the most important function, which packs information and submits jobs
+		This is the most important function. It packs information and submits jobs.
 	'''
 	def packSubmit(self, job_obj):
 
@@ -590,12 +592,18 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 		sub_submit_queue = self.submit_queue
 		# write run shell to workdir
 		sub_prepare_sub_script = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts/submission.sh")
-		# python script
-		sub_python_exec = None
+		# python script or exec command
+		sub_exec = None
 		# number of process
 		sub_nproc = 0
 		# workdir
 		sub_workdir = None
+		# sub_ppn, only for PBS
+		sub_ppn = 24
+		# submission type : standard (mpi4py parallel) or customed (mpi C parallel)
+		sub_type = 'standard'
+		# control whether to overwrite exisiting projects, or just continue from it
+		sub_resume = False
 
 
 		############ These are irrelevent to assignments' type
@@ -608,8 +616,12 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 		try:
 			inh5 = utils.read_config(config_file, [self.namespace['config_head'], 'data-path in cxi/h5'])
 		except:
-			inh5 = utils.read_config(config_file, ['darkcal', 'inh5'])
-		inh5 = utils.compile_h5loc(inh5, job_obj.run_name)
+			try:
+				inh5 = utils.read_config(config_file, ['darkcal', 'inh5'])
+			except:
+				inh5 = None
+		if inh5 is not None:
+			inh5 = utils.compile_h5loc(inh5, job_obj.run_name)
 		############
 
 
@@ -624,7 +636,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 			else:
 				runtime['darkcal'] = str(self.ui.lineEdit_2.text())
 			
-			sub_python_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["hf"])
+			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["hf"])
 			
 			# decide mpi rank size
 			# actually I want to be free from inh5, but can not find any good ways
@@ -640,10 +652,11 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 		elif job_obj.assignments == self.namespace['process_AP']:
 		# adu2photon
 
-			sub_python_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["ap"])
+			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["ap"])
 			# get data source path
 			this_datadir = utils.read_config(config_file, [self.namespace['config_head'], 'Data Dir'])
-			# do not use raw dataset
+			# Note : job_obj.datafile contains raw data files selected in 'process table',
+			# but if adu2photon do not use raw data (e.g. use hit-finding results), then
 			if not job_obj.datafile[0].startswith(this_datadir):
 				assignments = os.path.split(this_datadir)[-1]
 				try:
@@ -654,12 +667,6 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 				except:
 					utils.show_message("%s:\nI cannot find the data source, please check the parameters agian." % runtime['run_name'])
 					return None
-				'''
-				tag_remarks = self.tag_remarks_buffer[runtime['run_name']]
-				if len(tag_remarks) != 2:
-					utils.show_message("%s:\nI cannot find the data source, please check the parameters agian." % runtime['run_name'])
-					return None
-				'''
 				datafile = os.path.join(this_datadir, utils.fmt_job_dir(runtime['run_name'], tag_remarks[0], tag_remarks[1]), '*.h5')
 				datafile = glob.glob(datafile)
 				if len(datafile) == 0:
@@ -674,6 +681,146 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 									"Check : data location, 'Data-path in cxi/h5' are correct;\n" + \
 									"Check : data files are multi-pattern HDf5 format.")
 				return None
+
+		elif job_obj.assignments == self.namespace['merge_emc']:
+		# EMC
+			import spipy
+
+			sub_type = "customed"
+			sub_resume = True
+			sub_ppn = 2
+			try:
+				sub_nproc = self.given_runtime['num_proc']
+				emc_nthreads = self.given_runtime['num_thread']
+				emc_niters = self.given_runtime['iters']
+				emc_resume = self.given_runtime['resume']
+			except Exception as err:
+				utils.show_message("A software bug occurs, please report it.", str(err))
+				return None
+
+			config = utils.read_config(config_file)
+			chead = self.namespace['config_head']
+			# config dict
+			emc_config_essential = {'parameters|detd' : config.getfloat(chead, "clen"), 'parameters|lambda' : config.getfloat(chead, "lambda"), \
+						'parameters|detsize' : '%d %d' % (config.getint(chead, "det_x"), config.getint(chead, "det_y")), \
+						'parameters|pixsize' : config.getfloat(chead, "pix_size"), \
+						'parameters|stoprad' : config.getint(chead, "beam_stop"), 'parameters|polarization' : 'x', \
+						'emc|num_div' : config.getint(chead, "num_div"), 'emc|need_scaling' : config.getint(chead, "scaling"), \
+						'emc|beta' : config.getfloat(chead, "beta"), \
+						'emc|beta_schedule' : '%.3f %d' % (config.getfloat(chead, "beta_t"), config.getint(chead, "beta_i")) }
+			emc_config_optional = {'parameters|ewald_rad' : config.getfloat(chead, "ewald_rad"), \
+						'make_detector|in_mask_file' : config.get(chead, "mask"), \
+						'emc|sym_icosahedral' : 0, 'emc|selection' : None, \
+						'emc|start_model_file' : None}
+			if emc_config_optional['parameters|ewald_rad'] <= 0.0:
+				emc_config_optional['parameters|ewald_rad'] = -1.0
+			symmetry = config.get(chead, "symmetry").split(',')[1]
+			if symmetry == self.namespace['merge_ICOSYM']:
+				emc_config_optional['emc|sym_icosahedral'] = 1
+			selection = config.get(chead, "data_selection").split(',')[1]
+			if selection.lower() != "all":
+				emc_config_optional['emc|selection'] = selection
+			if config.get(chead, "start_model").lower() != "random":
+				emc_config_optional['emc|start_model_file'] = config.get(chead, "start_model")
+			emc_parameters = dict(emc_config_essential, **emc_config_optional)
+
+			# from here, stdout is redirected to blackhole
+			save_stdout = sys.stdout
+			sys.stdout = open(os.devnull, 'w')
+
+			# job_obj.datafile (a list) contains only 1 h5 file, which is exactly the data we need
+			# create new project ? or resume
+			try:
+				# runtime['savepath'] and job_obj.savepath doesn't change, it is pointed to "project dir"
+				# sub_workdir change to "emc dir"
+				# the project dir structure should like this:
+				#     |- project dir
+				#     	|- status dir
+				#     	|- config.ini
+				#       |- runtime.json
+				#       |- emc dir
+				#         |- ... (real EMC project)
+				sub_workdir = os.path.join(runtime['savepath'], job_obj.run_name)
+				if not emc_resume:
+					if os.path.isdir(runtime['savepath']):
+						if not self.force_overwrite:
+							re = utils.show_warning("project %s already exists, overwrite it?" % sub_workdir)
+							if re == 0:
+								return None
+						shutil.rmtree(runtime['savepath'])
+					os.mkdir(runtime['savepath'])
+					spipy.merge.emc.new_project(job_obj.datafile[0], inh5, runtime['savepath'], job_obj.run_name)
+				else:
+					spipy.merge.emc.use_project(sub_workdir)
+				spipy.merge.emc.config(emc_parameters)
+				'''
+					tmp example : 'mpirun -np 10 ./emc -c config.ini -t 12 (-r) 30'
+				'''
+				tmp = spipy.merge.emc.run(num_proc=sub_nproc, num_thread=emc_nthreads, iters=emc_niters, nohup=False, resume=emc_resume, cluster=True)
+				for tf in glob.glob(os.path.join(sub_workdir, "*.sh")):
+					os.remove(tf)
+			except Exception as err:
+				sys.stdout = save_stdout
+				utils.show_message("Fail to create/use project '%s'. Check input parameters !" % job_obj.run_name, str(err))
+				return None
+
+			tmp = tmp.strip().split()
+			tmp[0] = spipy.info.EMC_MPI
+			# prevent any chance of confliction with project 'config.ini'
+			tmp[5] = "config_emc.ini"
+			shutil.move(os.path.join(sub_workdir, 'config.ini'), os.path.join(sub_workdir, 'config_emc.ini'))
+			sub_exec = " ".join(tmp)+";touch status/summary.txt"
+			# end of stdout redirection
+			sys.stdout.close()
+			sys.stdout = save_stdout
+
+		elif job_obj.assignments == self.namespace['phasing_PJ']:
+		# phasing
+
+			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["pr"])
+			# runtime['dataset'] (a list) contains only 1 file, which is exactly the data we need
+
+			# decide mpi rank
+			sub_nproc = self.given_runtime['num_proc']
+
+		elif job_obj.assignments == self.namespace['simulation_AS']:
+		# atom-scattering simulation
+
+			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["as"])
+			# runtime['dataset'] (a list) contains only 1 file, which is exactly the data we need
+
+			# decide mpi rank
+			sub_nproc = self.given_runtime['num_proc']
+			runtime['num_pattern'] = self.given_runtime['num_pattern']
+
+		elif job_obj.assignments == self.namespace['simulation_FFT']:
+		# FFT simulation
+
+			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["fs"])
+			# runtime['dataset'] (a list) contains only 1 file, which is exactly the data we need
+
+			# decide mpi rank
+			sub_nproc = 1
+			runtime['num_pattern'] = self.given_runtime['num_pattern']
+
+		elif job_obj.assignments in [self.namespace['classify_DCPS'], self.namespace['classify_TSNE']]:
+		# manifold decomposition
+
+			if job_obj.assignments == self.namespace['classify_DCPS']:
+				sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["sp"])
+			else:
+				sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["ts"])
+
+			# runtime['dataset'] (a list) contains only 1 file, which is exactly the data we need
+			runtime['inh5'] = self.given_runtime['inh5']
+			runtime['mask'] = self.given_runtime['mask']
+			runtime['benchmark'] = self.given_runtime['benchmark']
+			# decide mpi rank
+			fp = h5py.File(runtime['dataset'][0], 'r')
+			num = fp[runtime['inh5']].shape[0]
+			fp.close()
+			gp_size = int(utils.read_config(config_file, [self.namespace['config_head'], 'group_size']))
+			sub_nproc = num // gp_size
 
 		else:
 			return None
@@ -690,20 +837,32 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 				os.mkdir(runtime['savepath'])
 				os.mkdir(os.path.join(runtime['savepath'], 'status'))
 			else:
-				if not self.force_overwrite:
-					re = utils.show_warning("project %s already exists, overwrite it?" % runtime['savepath'])
-					if re == 0:
-						utils.show_message("Don't overwrite project %s, EXIT." % runtime['savepath'])
-						return None
-				shutil.rmtree(runtime['savepath'])
-				os.mkdir(runtime['savepath'])
-				os.mkdir(os.path.join(runtime['savepath'], 'status'))
+				if not sub_resume:
+					if not self.force_overwrite:
+						re = utils.show_warning("project %s already exists, overwrite it?" % runtime['savepath'])
+						if re == 0:
+							return None
+					shutil.rmtree(runtime['savepath'])
+					os.mkdir(runtime['savepath'])
+					os.mkdir(os.path.join(runtime['savepath'], 'status'))
+				else:
+					tmp = os.path.join(runtime['savepath'], 'status')
+					if os.path.exists(tmp):
+						shutil.rmtree(tmp)
+					tmp = os.path.join(runtime['savepath'], 'config.ini')
+					if os.path.exists(tmp):
+						os.remove(tmp)
+					tmp = os.path.join(runtime['savepath'], 'runtime.json')
+					if os.path.exists(tmp):
+						os.remove(tmp)
+					os.mkdir(os.path.join(runtime['savepath'], 'status'))
 			# write runtimejson and config to workdir
 			with open(os.path.join(runtime['savepath'], 'runtime.json'), 'w') as rjson:
 				json.dump(runtime, rjson)
 			shutil.copyfile(config_file, os.path.join(runtime['savepath'], 'config.ini'))
 			# write submit script to workdir
-			SUB_cmd = subprocess.check_output("bash %s -s %s -t %d -p %s -q %s -y %s" % (sub_prepare_sub_script, sub_python_exec, sub_nproc, sub_workdir, sub_submit_queue, sub_jss), shell=True )
+			SUB_cmd = subprocess.check_output("bash %s -s '%s' -t %d -p %s -q %s -y %s -z %d -e %s" % \
+				(sub_prepare_sub_script, sub_exec, sub_nproc, sub_workdir, sub_submit_queue, sub_jss, sub_ppn, sub_type), shell=True )
 			SUB_cmd = SUB_cmd.strip("\n")
 			if len(SUB_cmd) == 0:
 				return None
@@ -714,6 +873,7 @@ class JobCenter(QtGui.QDialog, QtCore.QEvent):
 				return None
 			else:
 				return pobj
-		except:
+		except Exception as err:
+			utils.show_message("Error !", str(err))
 			return None
 

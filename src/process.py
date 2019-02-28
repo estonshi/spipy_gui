@@ -384,6 +384,7 @@ class Process_Settings(QtGui.QMainWindow, QtCore.QEvent):
 		# save ini
 		config_file = self.get_config_path(self.assignments, tagname)
 		utils.write_config(config_file, {self.namespace['config_head']:Process_Settings.param[self.assignments]},'w')
+		utils.print2projectLog(self.mainwindow.dirname, "Save %s" % config_file)
 		self.close()
 
 
