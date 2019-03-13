@@ -82,9 +82,16 @@ if __name__ == '__main__':
 	if config.getint(sec, "poisson") > 0:
 		config_param['make_data|poisson'] = True
 
-	mask = np.load(config.get(sec, "mask"))
-	if mask.shape[0] != mask.shape[1] or mask.shape[0] != config_param['parameters|detsize']:
-		raise RuntimeError("Mask shape is not consistent with input detector size !")
+	# mask
+	if os.path.isfile(config.get(sec, "mask")):
+		mask = np.load(config.get(sec, "mask"))
+		print("- Load mask file.")
+		if mask.shape[0] != mask.shape[1] or mask.shape[0] != config_param['parameters|detsize']:
+			raise RuntimeError("Mask shape is not consistent with input detector size !")
+	else:
+		print("- No mask provided.")
+		mask = None
+		
 	rot_order = config.get(sec, "rot_order")
 	euler_type = config.get(sec, "euler_type")
 	if euler_type.lower() == "predefined":

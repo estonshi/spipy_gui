@@ -88,7 +88,10 @@ class JobBenchmark(QtGui.QDialog, QtCore.QEvent):
 		# description
 		description = self.assignments
 		if runtime.has_key('mask'):
-			description = description + ", with mask"
+			if self.mask is None:
+				description = description + ", without mask"
+			else:
+				description = description + ", with mask"
 		if runtime.has_key('inh5'):
 			description = description + ", inh5 = %s" % self.inh5
 		self.ui.lineEdit.setText(description)

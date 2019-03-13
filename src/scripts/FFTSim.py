@@ -91,10 +91,16 @@ if __name__ == '__main__':
 						'make_data|fluence' : config.getfloat(sec, "fluence") * 1e14 }
 
 		# mask
-		mask = np.load(config.get(sec, "mask"))
-		if mask.shape[0] != mask.shape[1] or mask.shape[0] != config_param['parameters|detsize']:
-			MPI.Finalize()
-			raise RuntimeError("Mask shape is not consistent with input detector size !")
+		if os.path.isfile(config.get(sec, "mask")):
+			mask = np.load(config.get(sec, "mask"))
+			print("- Load mask file.")
+			if mask.shape[0] != mask.shape[1] or mask.shape[0] != config_param['parameters|detsize']:
+				MPI.Finalize()
+				raise RuntimeError("Mask shape is not consistent with input detector size !")
+		else:
+			print("- No mask provided.")
+			mask = None
+
 
 		# construct project
 		sim.generate_config_files(pdb_file=pdbfile, workpath=savepath, name=run_name, params=config_param)
@@ -103,12 +109,13 @@ if __name__ == '__main__':
 		sim.run_simulation(skip_check = True)
 
 		# apply mask
-		print("- Applying mask ...")
-		outputdata = glob.glob(os.path.join(savepath, run_name, "output", "*.h5"))[0]
-		fp = h5py.File(outputdata, 'a')
-		for i in range(fp['patterns'].shape[0]):
-			fp['patterns'][i] = fp['patterns'][i] * (1-mask)
-		fp.close()
+		if mask is not None:
+			print("- Applying mask ...")
+			outputdata = glob.glob(os.path.join(savepath, run_name, "output", "*.h5"))[0]
+			fp = h5py.File(outputdata, 'a')
+			for i in range(fp['patterns'].shape[0]):
+				fp['patterns'][i] = fp['patterns'][i] * (1-mask)
+			fp.close()
 
 		# make soft link
 		output_datah5 = glob.glob(os.path.join(savepath, run_name, "output", "*.h5"))[0]

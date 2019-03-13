@@ -115,7 +115,14 @@ if __name__ == '__main__':
 
 	comm.Barrier()
 
-	fp = h5py.File(os.path.join(savepath, "output.h5"), 'a')
+	# save
+	fp = None
+	while fp is None:
+		try:
+			fp = h5py.File(os.path.join(savepath, "output.h5"), 'a')
+		except:
+			fp = None
+			
 	fp['features'][databin[mpi_rank]:databin[mpi_rank+1],:] = d_comp
 	fp['labels'][databin[mpi_rank]:databin[mpi_rank+1]] = predict
 	fp.close()
