@@ -18,7 +18,7 @@ bogon:~ myuser$ cd spipy_gui-1.0
 bogon:~ myuser$ ./compile.sh
 ```
 
-## Running GUI
+## Run
 ```
 # Get version information
 bogon:~ myuser$ ./spipy.gui -v
@@ -26,3 +26,6 @@ bogon:~ myuser$ ./spipy.gui -v
 # Run GUI
 bogon:~ myuser$ ./spipy.gui
 ```
+
+## GUI
+[pre-view of the GUI](https://github.com/estonshi/spipy_gui/issues/1)
