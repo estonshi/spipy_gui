@@ -57,7 +57,7 @@ if [ "$jss"x = "PBS"x ]; then
 	n_node=$[$pnum/$n_ppn+1]
 	### submit command
 	if [ "$exec_type"x = "standard"x ]; then
-		SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini"
+		SUB="mpiexec -np $pnum --oversubscribe python -W ignore $script runtime.json config.ini"
 	else
 		SUB="$script"
 	fi
@@ -78,7 +78,7 @@ if [ "$jss"x = "PBS"x ]; then
 elif [ "$jss"x = "LSF"x ]; then
 	### submit command
 	if [ "$exec_type"x = "standard"x ]; then
-		SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum mpirun -n $pnum python -W ignore $script runtime.json config.ini"
+		SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum mpiexec -np $pnum python -W ignore $script runtime.json config.ini"
 	else
 		SUB="bsub -q $queue -o ${jobname}.out -e ${jobname}.err -J ${jobname} -n $pnum $script"
 	fi
@@ -93,7 +93,7 @@ elif [ "$jss"x = "LSF"x ]; then
 else
 	### submit directly
 	if [ "$exec_type"x = "standard"x ]; then
-		SUB="mpirun -n $pnum python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
+		SUB="mpiexec -np $pnum --oversubscribe python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
 	else
 		SUB="$script 1>${jobname}.out 2>${jobname}.err"
 	fi
