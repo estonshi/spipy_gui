@@ -170,6 +170,13 @@ def show_warning(message, informative=None):
 	return ret
 
 
+def create_progress(message, parent, title="ProgressBar"):
+	progress = QtWidgets.QProgressDialog(parent)
+	progress.setWindowTitle(title)
+	progress.setLabelText(message)
+	progress.setWindowModality(QtCore.Qt.WindowModal)
+	return progress
+
 
 ##########
 
@@ -287,10 +294,9 @@ def check_datadir(datadir, fmt_ind, all_fmts, subDir):
 
 
 def parse_multi_runs_nosubdir(path, dataformat):
-	# xtc file name format :
+	# 1. xtc file name format :
 	# 	https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
-	# default format do not support multi-files per run,
-	# where no sub-dir exists.
+	# 2. For other formats, multi-files per run where no sub-dir exists are not supported
 	all_files = [f for f in os.listdir(path) if f[0]!='.']
 	if dataformat.lower() == "xtc":
 		runs_multi = [findnumber(r)[1] for r in all_files if \
@@ -308,11 +314,12 @@ def parse_multi_runs_nosubdir(path, dataformat):
 
 
 def parse_multi_run_streams(path, runname, dataformat, subdir=True):
-	# xtc file name format :
+	# 1. xtc file name format :
 	# 	https://confluence.slac.stanford.edu/display/PSDM/Data+Formats
+	# 2. For other formats, multi-files per run where no sub-dir exists are not supported
 	all_files = [f for f in os.listdir(path) if f[0]!='.']
 	if dataformat.lower() == "xtc":
-		run_num = findnumber(runname)[1]
+		run_num = runname #findnumber(runname)[1]
 		streams = [os.path.join(path,s) for s in all_files if os.path.isfile(os.path.join(path, s)) \
 					and s.split('.')[-1].lower() == dataformat.lower() and findnumber(s)[1] == run_num]
 	else:

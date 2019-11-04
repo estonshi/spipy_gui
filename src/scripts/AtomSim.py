@@ -120,12 +120,14 @@ if __name__ == '__main__':
 	if mpi_rank == 0:
 		# apply mask
 		print("\n")
-		print("- Applying mask ...")
-		outputdata = glob.glob(os.path.join(savepath, "*.h5"))[0]
-		fp = h5py.File(outputdata, 'a')
-		for i in range(fp['patterns'].shape[0]):
-			fp['patterns'][i] = fp['patterns'][i] * (1-mask)
-		fp.close()
+
+		if mask is not None:
+			print("- Applying mask ...")
+			outputdata = glob.glob(os.path.join(savepath, "*.h5"))[0]
+			fp = h5py.File(outputdata, 'a')
+			for i in range(fp['patterns'].shape[0]):
+				fp['patterns'][i] = fp['patterns'][i] * (1-mask)
+			fp.close()
 
 		# write summary
 		end_time = time.time()

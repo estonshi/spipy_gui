@@ -683,7 +683,8 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 
 		elif job_obj.assignments == self.namespace['merge_emc']:
 		# EMC
-			import spipy
+			from spipy import merge
+			from spipy import info as spi_info
 
 			sub_type = "customed"
 			sub_resume = True
@@ -693,6 +694,7 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 				emc_nthreads = self.given_runtime['num_thread']
 				emc_niters = self.given_runtime['iters']
 				emc_resume = self.given_runtime['resume']
+				emc_newproj = self.given_runtime['newproj']
 			except Exception as err:
 				utils.show_message("A software bug occurs, please report it.", str(err))
 				return None
@@ -740,7 +742,7 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 				#       |- emc dir
 				#         |- ... (real EMC project)
 				sub_workdir = os.path.join(runtime['savepath'], job_obj.run_name)
-				if not emc_resume:
+				if emc_newproj:
 					if os.path.isdir(runtime['savepath']):
 						if not self.force_overwrite:
 							re = utils.show_warning("project %s already exists, overwrite it?" % sub_workdir)
@@ -748,14 +750,18 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 								return None
 						shutil.rmtree(runtime['savepath'])
 					os.mkdir(runtime['savepath'])
-					spipy.merge.emc.new_project(job_obj.datafile[0], inh5, runtime['savepath'], job_obj.run_name)
+					progress = utils.create_progress("Please wait for a moment ...", self, "Running")
+					progress.show()
+					merge.emc.new_project(job_obj.datafile[0], inh5, runtime['savepath'], job_obj.run_name)
+					progress.close()
 				else:
-					spipy.merge.emc.use_project(sub_workdir)
-				spipy.merge.emc.config(emc_parameters)
+					merge.emc.use_project(sub_workdir)
+				# config
+				merge.emc.config(emc_parameters)
 				'''
 					tmp example : 'mpirun -np 10 ./emc -c config.ini -t 12 (-r) 30'
 				'''
-				tmp = spipy.merge.emc.run(num_proc=sub_nproc, num_thread=emc_nthreads, iters=emc_niters, nohup=False, resume=emc_resume, cluster=True)
+				tmp = merge.emc.run(num_proc=sub_nproc, num_thread=emc_nthreads, iters=emc_niters, nohup=False, resume=emc_resume, cluster=True)
 				for tf in glob.glob(os.path.join(sub_workdir, "*.sh")):
 					os.remove(tf)
 			except Exception as err:
@@ -765,14 +771,16 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 
 			tmp = tmp.strip().split()
 			try:
-				tmp[0] = spipy.info.EMC_MPI
+				tmp[0] = spi_info.EMC_MPI
 			except:
 				utils.show_message("spipy.emc in your python environment is not compiled !")
 				return None
 			# prevent any chance of confliction with project 'config.ini'
 			tmp[5] = "config_emc.ini"
-			shutil.move(os.path.join(sub_workdir, 'config.ini'), os.path.join(sub_workdir, 'config_emc.ini'))
-			sub_exec = " ".join(tmp)+";touch status/summary.txt"
+			tmp.append("2>../%s.out" %job_obj.run_name)
+			tmp.append("1>../%s.err" %job_obj.run_name)
+			shutil.move(os.path.join(sub_workdir, 'config.ini'), os.path.join(sub_workdir, 'config.ini'))
+			sub_exec = " ".join(tmp)+";touch ../status/summary.txt"
 			# end of stdout redirection
 			sys.stdout.close()
 			sys.stdout = save_stdout
@@ -780,11 +788,15 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 		elif job_obj.assignments == self.namespace['phasing_PJ']:
 		# phasing
 
-			sub_exec = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["pr"])
+			exec_tmp = os.path.join(os.path.split(os.path.realpath(__file__))[0], "scripts", self.python_scripts["pr"])
 			# runtime['dataset'] (a list) contains only 1 file, which is exactly the data we need
-
 			# decide mpi rank
 			sub_nproc = self.given_runtime['num_proc']
+
+			# openmpi>4.0 has bugs and we need to add more options to it, so we use customed subtype
+			sub_type = "customed"
+			sub_exec = "mpiexec -np %d" % sub_nproc + " --mca btl self,tcp --oversubscribe python -W ignore " +\
+					exec_tmp + " runtime.json config.ini 1>%s.out 2>%s.err" % (job_obj.run_name,job_obj.run_name)
 
 		elif job_obj.assignments == self.namespace['simulation_AS']:
 		# atom-scattering simulation

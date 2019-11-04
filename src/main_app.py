@@ -466,8 +466,10 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 
 		# subdir ?
 		if not self.datapathtype:
+			# no subdir, returns run number (xtc) or file name (other)
 			all_in_dir = utils.parse_multi_runs_nosubdir(self.datapath, self.data_format)
 		else:
+			# subdir, returns folder name
 			all_in_dir = [f for f in os.listdir(self.datapath) if "." not in f and f[0]!="$" \
 									and os.path.isdir(os.path.join(self.datapath, f))]
 
@@ -493,9 +495,11 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 				self.rawdata_changelog[run_name] = {}
 				# update process_data
 				if not self.datapathtype:
+					# no subdir, run_name is run number (e.g. "0001") for xtc files, or file names for others
 					self.process_data[run_name][0] = utils.parse_multi_run_streams(self.datapath, run_name, self.data_format, False)
 					self.process_data[run_name][2] = self.namespace['process_status'][0] + " (%s)" % run_streams_num
 				else:
+					# subdir run_name is folder name, e.g. "r0001"
 					subpath = os.path.join(self.datapath, d)
 					datafile = utils.parse_multi_run_streams(subpath, run_name, self.data_format)
 					if len(datafile) >= 1:
@@ -1091,19 +1095,22 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 		processes = self.ui.spinBox_14.value()
 		threads = self.ui.spinBox_18.value()
 		iterations = self.ui.spinBox_19.value()
+		runtime = {'num_proc':processes, 'num_thread':threads, 'iters':iterations}
 		if not self.ui.radioButton.isEnabled():
 			resume = False
+			if not os.path.isfile(data_file):
+				utils.show_message("Please choose data (HDF5) file !")
+				return
+			runtime['newproj'] = 1
 		else:
 			if self.ui.radioButton.isChecked():
 				resume = True
 			else:
 				resume = False
-		runtime = {'num_proc':processes, 'num_thread':threads, 'iters':iterations, 'resume':resume}
+			runtime['newproj'] = 0
+		runtime['resume'] = resume
 		if len(run_name) == 0:
 			utils.show_message("Project name should not be blank !")
-			return
-		if not os.path.isfile(data_file):
-			utils.show_message("Please choose data (HDF5) file !")
 			return
 		# notice again
 		re = utils.show_warning("Confirm to submit this job ?\n", \

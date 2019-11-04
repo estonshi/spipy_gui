@@ -94,6 +94,7 @@ class SPIPY_START(QtWidgets.QMainWindow, QtCore.QEvent):
 					# job control
 					self.job_control[0] = int(config.get(config_name, config_item[4]))
 					self.job_control[1] = int(config.get(config_name, config_item[5]))
+					self.monitor_time = config.getint(config_name, config_item[6])
 				except:
 					utils.show_message("There seems to be some problems in your 'project.ini' at project directory.")
 					return
@@ -205,12 +206,11 @@ class SPIPY_START(QtWidgets.QMainWindow, QtCore.QEvent):
 		config_name = self.namespace['project_ini'][0]
 		config_item = self.namespace['project_ini'][1].split(',')
 		config_path = os.path.join(self.dirname, self.namespace['ini'])
-		if not os.path.isfile(config_path):
-			utils.write_config(config_path,\
-				{config_name:{config_item[0]:self.datadir, config_item[1]:self.jss, \
-				config_item[2]:self.format_index, config_item[3]:self.subDir, \
-				config_item[4]:self.job_control[0], config_item[5]:self.job_control[1], \
-				config_item[6]:self.monitor_time}}, 'w')
+		config_dict = {config_name:{config_item[0]:self.datadir, config_item[1]:self.jss, \
+						config_item[2]:self.format_index, config_item[3]:self.subDir, \
+						config_item[4]:self.job_control[0], config_item[5]:self.job_control[1], \
+						config_item[6]:self.monitor_time}}
+		utils.write_config(config_path, config_dict, 'w')
 
 		utils.print2projectLog(self.dirname, "Select data dir %s" % self.datadir)
 		utils.print2projectLog(self.dirname, "Choose work dir %s" % self.dirname)

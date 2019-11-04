@@ -226,6 +226,7 @@ class jobView(QtWidgets.QMainWindow, QtCore.QEvent):
 		stderr = glob.glob(os.path.join(savepath, "*.err"))
 		if len(stdout) == 0 or len(stderr) == 0:
 			utils.show_message("Cannot find any log file in project %s" % savepath )
+			self.log_jid = "command history"
 			return
 		log_type = str(self.ui.comboBox.currentText())
 		if "output" in log_type:

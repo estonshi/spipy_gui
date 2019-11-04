@@ -95,7 +95,7 @@ else
 	if [ "$exec_type"x = "standard"x ]; then
 		SUB="mpiexec -np $pnum --oversubscribe python -W ignore $script runtime.json config.ini 1>${jobname}.out 2>${jobname}.err"
 	else
-		SUB="$script 1>${jobname}.out 2>${jobname}.err"
+		SUB=$script
 	fi
 	### write to workdir
 	echo "#!/bin/bash" >> $SFILE
