@@ -130,10 +130,10 @@ if __name__ == '__main__':
 
 		try:
 			if proj_type == 2:
-				phr.phase2d.new_project(data_mask_path=[runtime['dataset'][0],mask_file], path=runtime['savepath'], name=runtime['run_name'])
+				phr.phase2d.new_project(data_path=runtime['dataset'][0],mask_path=mask_file, path=runtime['savepath'], name=runtime['run_name'])
 				phr.phase2d.config_project(params = parameters)
 			else:
-				phr.phase3d.new_project(data_path=runtime['dataset'][0],mask_path = mask_file, path=runtime['savepath'], name=runtime['run_name'])
+				phr.phase3d.new_project(data_path=runtime['dataset'][0],mask_path=mask_file, path=runtime['savepath'], name=runtime['run_name'])
 				phr.phase3d.config_project(params = parameters)
 		except Exception as err:
 			MPI.Finalize()
