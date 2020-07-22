@@ -96,10 +96,15 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 		self.force_overwrite = False
 		# darkcal in h5
 		self.darkcal_inh5 = utils.read_config(os.path.join(self.rootdir, self.namespace['project_structure'][0], 'config/darkcal.ini'), ['darkcal', 'inh5'])
+		self.darkcal_mask = utils.read_config(os.path.join(self.rootdir, self.namespace['project_structure'][0], 'config/darkcal.ini'), ['darkcal', 'mask_file'])
+		# hide mask part
+		self.ui.lineEdit_4.setText(self.darkcal_mask)
+		self.ui.widget_6.setVisible(False)
 
 		# triggers
 		# self.ui.comboBox.currentIndexChanged.connect(self.tag_changed)
 		self.ui.pushButton.clicked.connect(self.darkcal_dir)
+		self.ui.pushButton_4.clicked.connect(self.darkcal_mask_chose)
 		self.ui.pushButton_3.clicked.connect(self.run)
 		self.ui.pushButton_2.clicked.connect(self.cancel)
 		self.ui.comboBox.currentIndexChanged.connect(self.config_change)
@@ -363,6 +368,9 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 				if not str(self.ui.lineEdit_2.text()) == self.darkcal_inh5:
 					self.darkcal_inh5 = str(self.ui.lineEdit_2.text())
 					utils.write_config(os.path.join(self.rootdir, self.namespace['project_structure'][0], 'config/darkcal.ini'), {'darkcal':{'inh5':self.darkcal_inh5}}, "a")
+				if not str(self.ui.lineEdit_4.text()) == self.darkcal_mask:
+					self.darkcal_mask = str(self.ui.lineEdit_4.text())
+					utils.write_config(os.path.join(self.rootdir, self.namespace['project_structure'][0], 'config/darkcal.ini'), {'darkcal':{'mask_file':self.darkcal_mask}}, "a")
 			else:
 				if not os.path.isfile(str(self.ui.lineEdit_2.text())):
 					re = utils.show_warning("Dark calibration file is invalid, \
@@ -405,8 +413,13 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 
 
 	def darkcal_dir(self):
-		h5file = str(QtWidgets.QFileDialog(self).getOpenFileName(None, "Select darkcal (h5) file to open", "", "DARKCAL (*.h5)"))
+		h5file = str(QtWidgets.QFileDialog(self).getOpenFileName(None, "Select darkcal (h5) file to open", "", "DARKCAL (*.h5)")[0])
 		self.ui.lineEdit_2.setText(h5file)
+
+
+	def darkcal_mask_chose(self):
+		maskfile = str(QtWidgets.QFileDialog(self).getOpenFileName(None, "Select darkcal (h5) file to open", "", "MASK (*.npy)")[0])
+		self.ui.lineEdit_4.setText(maskfile)
 
 
 	def config_change(self):
@@ -419,6 +432,8 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 					self.ui.label_3.setText("Data loc in H5/cxi")
 					self.ui.lineEdit_2.setText(self.darkcal_inh5)
 					self.ui.pushButton.setVisible(False)
+					self.ui.widget_6.setVisible(True)
+					self.ui.lineEdit_4.setText(self.darkcal_mask)
 				else:
 					self.ui.widget_4.setVisible(False)
 			else:
@@ -430,6 +445,7 @@ class JobCenter(QtWidgets.QDialog, QtCore.QEvent):
 				else:
 					self.ui.lineEdit_2.setText("None")
 				self.ui.pushButton.setVisible(True)
+				self.ui.widget_6.setVisible(False)
 
 
 	def cancel(self):

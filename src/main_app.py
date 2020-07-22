@@ -319,6 +319,8 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 			# show menu
 			menu = QtWidgets.QMenu()
 			a1 = menu.addAction("Run %s" % assignments)
+			a4 = None
+			a4d = None
 			menu.addSeparator()
 			# a2 = menu.addAction("Terminate all")
 			menu_sub = menu.addMenu("Terminate")
@@ -328,7 +330,7 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 					b.append(menu_sub.addAction(assign))
 				if selected_tag_remarks[selected_runs[0]][0] != "--":
 					menu.addSeparator()
-					a4 = menu.addAction("Open %s results in data viewer" % assignments)
+					a4 = menu.addAction("Show %s results of these runs" % assignments)
 			elif len(selected_runs) == 1:
 				run_tag_remarks = self.get_existing_runtags(assignments, selected_runs[0])
 				for tr in run_tag_remarks:
@@ -337,9 +339,10 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 						b.append( menu_sub.addAction("%s.%s.%s.%s" % (assignments, selected_runs[0], tr[0], tr[1])) )
 				menu.addSeparator()
 				if selected_tag_remarks[selected_runs[0]][0] == "darkcal":
-					a4 = menu.addAction("Set as current darkcal")
+					a4d = menu.addAction("Set as current darkcal")
+					a4 = menu.addAction("Show darkcal results")
 				elif selected_tag_remarks[selected_runs[0]][0] != "--":
-					a4 = menu.addAction("Open %s results in data viewer" % assignments)
+					a4 = menu.addAction("Show %s results of this run" % assignments)
 				else:
 					a4 = 0
 			else:
@@ -356,41 +359,40 @@ class SPIPY_MAIN(QtWidgets.QMainWindow, QtCore.QEvent):
 				self.JobCenter.TableRun_showoff(job_type, selected_runs, selected_datafile, None)
 			#elif action == a2:
 			#	print("Terminate all jobs of %s" % str(selected_runs))
+			elif action == a4d:
+				# re-link current-darkcal.h5
+				tmp_darkfile = utils.fmt_job_dir(selected_runs[0], \
+					selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
+				tmp_darkfile = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], tmp_darkfile)
+				try:
+					tmp_darkfile = glob.glob(os.path.join(tmp_darkfile, "*darkcal.h5"))[0]
+				except:
+					utils.show_message("I cannot find ?.darkcal.h5 in this run. Fail to set current darkcal.")
+					return
+				tmp_curr_darklink = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], self.namespace['darkcal'])
+				prev_dark_run = None
+				if os.path.exists(tmp_curr_darklink):
+					prev_dark_run = subprocess.check_output("ls -l %s | awk -F'->' '{print $2}' | tr -d ' '" % tmp_curr_darklink, shell=True)
+					prev_dark_run = prev_dark_run.decode()
+					prev_dark_run = os.path.split(prev_dark_run.strip("\n"))[-1].split('.')[0]
+				subprocess.check_call("ln -fs %s %s" % (tmp_darkfile, tmp_curr_darklink), shell=True)
+				# refresh table info
+				if prev_dark_run is not None:
+					self.process_data[prev_dark_run][6] = "--"
+				self.process_data[selected_runs[0]][6] = "Current-Darkcal"
+				utils.print2projectLog(self.dirname, "Set %s as current darkcal" % selected_runs[0])
+				# draw table
+				self.draw_table()
 			elif len(selected_runs) == 1 and action == a4:
-				if selected_tag_remarks[selected_runs[0]][0] == "darkcal":
-					# re-link current-darkcal.h5
-					tmp_darkfile = utils.fmt_job_dir(selected_runs[0], \
-						selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
-					tmp_darkfile = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], tmp_darkfile)
-					try:
-						tmp_darkfile = glob.glob(os.path.join(tmp_darkfile, "*darkcal.h5"))[0]
-					except:
-						utils.show_message("I cannot find ?.darkcal.h5 in this run. Fail to set current darkcal.")
-						return
-					tmp_curr_darklink = os.path.join(self.dirname, self.namespace['project_structure'][0], self.namespace['process_HF'], self.namespace['darkcal'])
-					prev_dark_run = None
-					if os.path.exists(tmp_curr_darklink):
-						prev_dark_run = subprocess.check_output("ls -l %s | awk -F'->' '{print $2}' | tr -d ' '" % tmp_curr_darklink, shell=True)
-						prev_dark_run = prev_dark_run.decode()
-						prev_dark_run = os.path.split(prev_dark_run.strip("\n"))[-1].split('.')[0]
-					subprocess.check_call("ln -fs %s %s" % (tmp_darkfile, tmp_curr_darklink), shell=True)
-					# refresh table info
-					if prev_dark_run is not None:
-						self.process_data[prev_dark_run][6] = "--"
-					self.process_data[selected_runs[0]][6] = "Current-Darkcal"
-					utils.print2projectLog(self.dirname, "Set %s as current darkcal" % selected_runs[0])
-					# draw table
-					self.draw_table()
-				else:
-					# open data viewer and add files
-					tmp = utils.fmt_job_dir(selected_runs[0], \
-						selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
-					tmp = os.path.join(self.dirname, self.namespace['project_structure'][0], assignments, tmp, '*.h5')
-					tmp = glob.glob(tmp)
-					if not data_viewer.is_shown():
-						data_viewer.show_data_viewer(self)
-					data_viewer.add_files(tmp)
-					utils.print2projectLog(self.dirname, "Add %s results of %s to data viewer." % (assignments, selected_runs[0]))
+				# open data viewer and add files
+				tmp = utils.fmt_job_dir(selected_runs[0], \
+					selected_tag_remarks[selected_runs[0]][0], selected_tag_remarks[selected_runs[0]][1])
+				tmp = os.path.join(self.dirname, self.namespace['project_structure'][0], assignments, tmp, '*.h5')
+				tmp = glob.glob(tmp)
+				if not data_viewer.is_shown():
+					data_viewer.show_data_viewer(self)
+				data_viewer.add_files(tmp)
+				utils.print2projectLog(self.dirname, "Add %s results of %s to data viewer." % (assignments, selected_runs[0]))
 			elif len(selected_runs) == 1 and action in b:
 				tmp = str(action.text()).split('.')
 				jid = self.JobCenter.get_jid(tmp[0], tmp[1], tmp[2], tmp[3])

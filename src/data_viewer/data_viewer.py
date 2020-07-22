@@ -498,17 +498,21 @@ class MainWindow(QtWidgets.QMainWindow):
             dispData = np.fft.fftshift(dispData)
         return dispData
 
+    def clear_files(self):
+        count = self.ui.fileList.topLevelItemCount()
+        for i in range(count):
+            self.ui.fileList.takeTopLevelItem(0)
+
     def closeEvent(self, event):
         global data_viewer_window
         reply = QtWidgets.QMessageBox.question(self, 'Message',
             "Are you sure to quit?", QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
         if reply == QtWidgets.QMessageBox.Yes:
-            #print_with_timestamp('Bye-Bye.')
-            #pg.exit()
             if self.h5obj is not None:
                 self.h5obj.close()
-            del data_viewer_window
-            data_viewer_window = None
+            self.clear_files()
+            #del data_viewer_window
+            #data_viewer_window = None
         else:
             event.ignore()
 
@@ -661,6 +665,10 @@ class MainWindow(QtWidgets.QMainWindow):
             if action == deleteAction:
                 #print('deleting selected file')
                 for item in self.ui.fileList.selectedItems():
+                    if self.h5obj is not None:
+                        if item.filepath == self.h5obj.filename:
+                            self.h5obj.close()
+                            self.h5obj = None
                     self.ui.fileList.takeTopLevelItem(self.ui.fileList.indexOfTopLevelItem(item))
 
     def applyMaskSlot(self, _, mask):
@@ -816,9 +824,10 @@ Call this function to start data viewer
 '''
 def show_data_viewer(parent):
     global data_viewer_window
-    data_viewer_window = MainWindow(None)
-    data_viewer_window.resize(900, 600)
-    data_viewer_window.setWindowTitle("Scientific Data Viewer")
+    if data_viewer_window is None:
+        data_viewer_window = MainWindow(None)
+        data_viewer_window.resize(900, 600)
+        data_viewer_window.setWindowTitle("Scientific Data Viewer")
     try:
         data_viewer_window.show()
     except:
@@ -828,10 +837,8 @@ def show_data_viewer(parent):
 
 def is_shown():
     global data_viewer_window
-    if data_viewer_window is not None:
-        return True
-    else:
-        return False
+    if data_viewer_window is None: return False
+    else: return data_viewer_window.isVisible()
 
 
 def add_files(files):
@@ -845,4 +852,8 @@ def add_files(files):
         except:
             reply = QtWidgets.QMessageBox.question(None, 'Error',
                     "Faile to load file %s" % f, QtWidgets.QMessageBox.Ok)
+
+def clear_all_files():
+    global data_viewer_window
+    data_viewer_window.clear_files()
             

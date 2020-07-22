@@ -75,6 +75,16 @@ if __name__ == '__main__':
 			# this is dark calibration
 			inh5 = su.compile_h5loc(config.get(sec, 'inh5'), run_name)
 			mask_thres = int(config.get(sec, 'mask_thres'))
+			mask_file = config.get(sec, 'mask_file')
+			if mask_file.upper() != "NONE":
+				try:
+					mask = np.load(os.path.abspath(mask_file))
+				except:
+					print("- Mask file is invalid, ignore.")
+					mask = None
+			else:
+				print("- Mask file is not given.")
+				mask = None
 
 			status_file = os.path.join(savepath, "status/status_0.txt")
 			su.write_status(status_file, ["status"], [1])
@@ -96,8 +106,8 @@ if __name__ == '__main__':
 			meanBg[bad_points] = 0
 
 			# mask bg
-			center = analyse.saxs.friedel_search(meanBg, np.array(meanBg.shape)/2, None, 10, 50)
-			meanBg_Iq = image.radp.radial_profile(meanBg, center)
+			center = analyse.saxs.friedel_search(meanBg, np.array(meanBg.shape)/2, mask, 10, 50)
+			meanBg_Iq = image.radp.radial_profile(meanBg, center, mask)
 
 			maskBg = np.zeros(meanBg.shape, dtype=int)
 			meshgrids = np.indices(meanBg.shape)
@@ -105,7 +115,7 @@ if __name__ == '__main__':
 			rinfo = np.round(rinfo).astype(np.int)
 
 			for r, I, std in meanBg_Iq:
-				maskBg[(rinfo == r) & (meanBg > I+std*mask_thres)] = 1
+				maskBg[(rinfo == r) & ((meanBg > I+std*mask_thres) | (meanBg < I-std*mask_thres))] = 1
 			maskBg[bad_points] = 1
 
 			# save file
@@ -301,7 +311,7 @@ if __name__ == '__main__':
 					pass
 				else:
 					if dark_file is not None:
-						tmp = fp[inh5][single_h,:,:] * (1 - mask) - darkbg
+						tmp = (fp[inh5][single_h,:,:] - darkbg) * (1 - mask) 
 					else:
 						tmp = fp[inh5][single_h,:,:] * (1 - mask)
 
